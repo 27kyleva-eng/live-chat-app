@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Host · Tiny Help Desk Chat</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body data-role="host">
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <span class="kicker"><span class="dot"></span> Operator dashboard</span>
+        <h1>Run your tiny chat desk.</h1>
+        <p class="subtitle">Make a room, copy the guest link, and chat live from your browser. It feels like customer support, but it’s just a fun gimmick.</p>
+      </div>
+      <button class="primary" id="newRoom" type="button">New room</button>
+    </section>
+
+    <section class="host-grid">
+      <aside class="card panel stack" aria-label="Share links">
+        <div>
+          <h2>Share link</h2>
+          <p>Send this to the person you want to chat with.</p>
+          <div class="link-box">
+            <code id="guestLink">Loading…</code>
+            <button id="copyGuest" type="button">Copy guest link</button>
+          </div>
+        </div>
+
+        <div>
+          <h2>Your link</h2>
+          <p>Keep this one for the operator side.</p>
+          <div class="link-box">
+            <code id="hostLink">Loading…</code>
+            <button id="copyHost" type="button">Copy host link</button>
+          </div>
+        </div>
+
+        <p class="small-note">Room <strong id="roomLabel">lobby</strong>. Messages reset if the server restarts.</p>
+        <button class="danger" id="clearChat" type="button">Clear chat</button>
+      </aside>
+
+      <section class="card chat-card" aria-label="Host chat">
+        <header class="topbar">
+          <div class="identity">
+            <div class="avatar" aria-hidden="true">🛎️</div>
+            <div class="title-block">
+              <strong>Operator console</strong>
+              <span class="meta" id="status">Connecting…</span>
+            </div>
+          </div>
+          <div class="toolbar">
+            <label class="meta" for="nameInput">Display name</label>
+            <input id="nameInput" aria-label="Display name" maxlength="40">
+          </div>
+        </header>
+
+        <div class="messages" id="messages" aria-live="polite">
+          <div class="empty" id="empty"><div class="empty-icon">✨</div><strong>Ready when they are.</strong><br>Copy the guest link and wait for a message.</div>
+        </div>
+
+        <form class="composer" id="composer">
+          <input id="messageInput" autocomplete="off" maxlength="1200" placeholder="Reply as the operator…" aria-label="Message">
+          <button class="primary" type="submit">Send</button>
+        </form>
+      </section>
+    </section>
+  </main>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="/app.js"></script>
+</body>
+</html>

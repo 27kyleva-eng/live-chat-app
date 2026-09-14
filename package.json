@@ -1,0 +1,11 @@
+{
+  "name": "share-a-link-live-chat",
+  "version": "1.0.0",
+  "description": "A tiny no-login customer-service style live chat gimmick.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": ["chat", "live", "sse", "no-login"],
+  "license": "MIT"
+}
