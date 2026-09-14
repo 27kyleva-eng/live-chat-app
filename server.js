@@ -126,7 +126,26 @@ const server = http.createServer(async (req, res) => {
     } catch (error) {
       return json(res, 400, { error: error.message });
     }
-  }
+  if (req.method === 'POST' && url.pathname === '/api/seen') {
+    try {
+        const body = await readBody(req);
+        const { room, msgId } = body;
+        const { data } = getRoom(room);
+        
+        // Find the specific message in the room's history and flag it as seen
+        const msg = data.messages.find(m => m.id === msgId);
+        if (msg) {
+            msg.seen = true;
+        }
+        
+        // Broadcast to the other user that this message ID has been seen
+        broadcast(room, 'seen', { msgId });
+        return json(res, 200, { success: true });
+    } catch (err) {
+        return json(res, 500, { error: 'Server Error' });
+    }
+}
+
 
   if (req.method === 'POST' && url.pathname === '/api/clear') {
     const body = await readBody(req).catch(() => ({}));
