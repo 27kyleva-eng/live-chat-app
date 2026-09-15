@@ -64,14 +64,16 @@ function renderMessage(msg) {
     messagesEl.appendChild(div);
     messagesEl.scrollTop = messagesEl.scrollHeight;
 
+    // Fixed to use nameInput?.value to match your exact login field!
     if (!isMe && !msg.seen) {
+        const myCurrentName = (nameInput?.value || (role === 'host' ? 'Host' : 'Guest')).trim();
         fetch('/api/seen', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 room, 
                 msgId: msg.id,
-                seenBy: typeof username !== 'undefined' ? username : (document.getElementById('username')?.value || role)
+                seenBy: myCurrentName
             })
         }).catch(err => console.error(err));
     }
@@ -83,6 +85,7 @@ function setPresence(online) {
   const other = role === 'host' ? online.guest : online.host;
   statusEl.textContent = other > 0 ? 'Someone is online now' : 'Waiting for the other person';
 }
+
 
 function connect() {
   const source = new EventSource(`/api/events?room=${encodeURIComponent(room)}&role=${encodeURIComponent(role)}`);
@@ -104,13 +107,14 @@ function connect() {
   source.addEventListener('clear', () => {
     messagesEl.innerHTML = `<div class="empty" id="empty"><div class="empty-icon">✨</div><strong>Chat cleared.</strong><br>Fresh room, fresh gimmick.</div>`;
   });
-      source.addEventListener('seen', (event) => {
+    source.addEventListener('seen', (event) => {
         const data = JSON.parse(event.data);
         const receipt = document.querySelector(`.status-receipt[data-msg-id="${data.msgId}"]`);
         if (receipt) {
-            receipt.textContent = 'Seen';
+            receipt.textContent = `Seen by ${data.seenBy || 'Someone'}`;
         }
     });
+
 
   source.onerror = () => {
     if (statusEl) statusEl.textContent = 'Reconnecting…';
