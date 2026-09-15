@@ -146,6 +146,18 @@ const server = http.createServer(async (req, res) => {
         return json(res, 500, { error: 'Server Error' });
     }
 }
+    if (req.method === 'POST' && url.pathname === '/api/typing') {
+        try {
+            const body = await readBody(req);
+            const { room, sender, name, isTyping } = body;
+            
+            // Broadcast the typing event to the other person in the room
+            broadcast(room, 'typing', { sender, name, isTyping });
+            return json(res, 200, { success: true });
+        } catch (err) {
+            return json(res, 500, { error: 'Server Error' });
+        }
+    }
 
 
   if (req.method === 'POST' && url.pathname === '/api/clear') {

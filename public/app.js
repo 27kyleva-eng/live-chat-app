@@ -114,6 +114,28 @@ function connect() {
             receipt.textContent = `Seen by ${data.seenBy || 'Someone'}`;
         }
     });
+    source.addEventListener('typing', (event) => {
+        const data = JSON.parse(event.data);
+        if (data.sender === role) return;
+
+        let typingEl = document.getElementById('typing-indicator');
+        
+        if (data.isTyping) {
+            if (!typingEl) {
+                typingEl = document.createElement('div');
+                typingEl.id = 'typing-indicator';
+                typingEl.style.fontSize = '0.85rem';
+                typingEl.style.color = '#8e8e8e';
+                typingEl.style.margin = '5px 10px';
+                typingEl.style.fontStyle = 'italic';
+                messagesEl.appendChild(typingEl);
+            }
+            typingEl.textContent = `${escapeHtml(data.name)} is purrring 🐾`;
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        } else {
+            if (typingEl) typingEl.remove();
+        }
+    });
 
 
   source.onerror = () => {
@@ -163,6 +185,28 @@ $('#clearChat')?.addEventListener('click', async () => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ room })
   });
+});
+// Monitor keyboard typing inputs
+let typingTimeout;
+input?.addEventListener('input', () => {
+    const myCurrentName = (nameInput?.value || (role === 'host' ? 'Host' : 'Guest')).trim();
+    
+    // Send a "typing start" notification to the server
+    fetch('/api/typing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ room, sender: role, name: myCurrentName, isTyping: true })
+    }).catch(err => console.error(err));
+
+    // Clear indicator after 2 seconds of silence
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => {
+        fetch('/api/typing', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ room, sender: role, name: myCurrentName, isTyping: false })
+        }).catch(err => console.error(err));
+    }, 2000);
 });
 
 connect();
