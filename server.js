@@ -117,7 +117,8 @@ const server = http.createServer(async (req, res) => {
         sender: body.sender === 'host' ? 'host' : 'guest',
         name: String(body.name || (body.sender === 'host' ? 'Host' : 'Guest')).slice(0, 40),
         text,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        seen: false
       };
       data.messages.push(message);
       data.messages = data.messages.slice(-150);
