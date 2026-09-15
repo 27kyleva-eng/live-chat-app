@@ -55,26 +55,23 @@ function renderMessage(msg) {
     const isMe = msg.sender === role;
     div.className = `message ${isMe ? 'me' : 'them'}`;
     
-    // Creates the text space for the "Seen" receipt
     div.innerHTML = `
         <div class="byline"><span>${escapeHtml(msg.name || msg.sender)}</span></div>
         <div>${escapeHtml(msg.text)}</div>
         ${isMe ? `<div class="status-container"><span class="status-receipt" data-msg-id="${msg.id}">${msg.seen ? `Seen by ${escapeHtml(msg.seenBy || 'Someone')}` : 'Sent'}</span></div>` : ''}
     `;
-
     
     messagesEl.appendChild(div);
     messagesEl.scrollTop = messagesEl.scrollHeight;
 
-    // Tells the backend server we just read an incoming message
     if (!isMe && !msg.seen) {
         fetch('/api/seen', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 room, 
-                msgId: msg.id, 
-                seenBy: typeof nameEl !== 'undefined' && nameEl ? nameEl.value : role 
+                msgId: msg.id,
+                seenBy: typeof username !== 'undefined' ? username : (document.getElementById('username')?.value || role)
             })
         }).catch(err => console.error(err));
     }
