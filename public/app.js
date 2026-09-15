@@ -59,8 +59,9 @@ function renderMessage(msg) {
     div.innerHTML = `
         <div class="byline"><span>${escapeHtml(msg.name || msg.sender)}</span></div>
         <div>${escapeHtml(msg.text)}</div>
-        ${isMe ? `<div class="status-container"><span class="status-receipt" data-msg-id="${msg.id}">${msg.seen ? 'Seen' : 'Sent'}</span></div>` : ''}
+        ${isMe ? `<div class="status-container"><span class="status-receipt" data-msg-id="${msg.id}">${msg.seen ? `Seen by ${escapeHtml(msg.seenBy || 'Someone')}` : 'Sent'}</span></div>` : ''}
     `;
+
     
     messagesEl.appendChild(div);
     messagesEl.scrollTop = messagesEl.scrollHeight;
@@ -70,7 +71,11 @@ function renderMessage(msg) {
         fetch('/api/seen', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ room, msgId: msg.id })
+            body: JSON.stringify({ 
+                room, 
+                msgId: msg.id, 
+                seenBy: typeof nameEl !== 'undefined' && nameEl ? nameEl.value : role 
+            })
         }).catch(err => console.error(err));
     }
 }
