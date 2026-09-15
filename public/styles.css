@@ -222,8 +222,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, .button:focus
 
 .message.me {
   align-self: flex-end;
-  background: #B2EF9B;
-  border-color: #B2EF9B;
+  background: #602C70;
+  border-color: #602C70;
   color: #fff;
   border-bottom-right-radius: 6px;
 }
