@@ -126,7 +126,7 @@ const server = http.createServer(async (req, res) => {
     } catch (error) {
       return json(res, 400, { error: error.message });
     }
-  if (req.method === 'POST' && url.pathname === '/api/seen') {
+  }if (req.method === 'POST' && url.pathname === '/api/seen') {
     try {
         const body = await readBody(req);
         const { room, msgId } = body;
