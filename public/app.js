@@ -210,3 +210,15 @@ input?.addEventListener('input', () => {
 });
 
 connect();
+// Sidebar open and close click event handlers
+const sidebarElement = document.getElementById('sidebar-menu');
+const openSidebarBtn = document.getElementById('open-menu-btn');
+const closeSidebarBtn = document.getElementById('close-menu-btn');
+
+openSidebarBtn?.addEventListener('click', () => {
+    if (sidebarElement) sidebarElement.style.width = '240px'; /* Reveal Drawer panel */
+});
+
+closeSidebarBtn?.addEventListener('click', () => {
+    if (sidebarElement) sidebarElement.style.width = '0'; /* Hide Drawer panel */
+});
