@@ -50,16 +50,31 @@ function formatTime(iso) {
 }
 
 function renderMessage(msg) {
-  if (emptyEl) emptyEl.remove();
-  const div = document.createElement('article');
-  div.className = `message ${msg.sender === role ? 'me' : 'them'}`;
-  div.innerHTML = `
-    <div class="byline"><span>${escapeHtml(msg.name || msg.sender)}</span><span>${formatTime(msg.createdAt)}</span></div>
-    <div>${escapeHtml(msg.text)}</div>
-  `;
-  messagesEl.appendChild(div);
-  messagesEl.scrollTop = messagesEl.scrollHeight;
+    if (emptyEl) emptyEl.remove();
+    const div = document.createElement('article');
+    const isMe = msg.sender === role;
+    div.className = `message ${isMe ? 'me' : 'them'}`;
+    
+    // Creates the text space for the "Seen" receipt
+    div.innerHTML = `
+        <div class="byline"><span>${escapeHtml(msg.name || msg.sender)}</span></div>
+        <div>${escapeHtml(msg.text)}</div>
+        ${isMe ? `<div class="status-container"><span class="status-receipt" data-msg-id="${msg.id}">${msg.seen ? 'Seen' : 'Sent'}</span></div>` : ''}
+    `;
+    
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+
+    // Tells the backend server we just read an incoming message
+    if (!isMe && !msg.seen) {
+        fetch('/api/seen', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ room, msgId: msg.id })
+        }).catch(err => console.error(err));
+    }
 }
+
 
 function setPresence(online) {
   if (!statusEl) return;
@@ -87,6 +102,14 @@ function connect() {
   source.addEventListener('clear', () => {
     messagesEl.innerHTML = `<div class="empty" id="empty"><div class="empty-icon">✨</div><strong>Chat cleared.</strong><br>Fresh room, fresh gimmick.</div>`;
   });
+      source.addEventListener('seen', (event) => {
+        const data = JSON.parse(event.data);
+        const receipt = document.querySelector(`.status-receipt[data-msg-id="${data.msgId}"]`);
+        if (receipt) {
+            receipt.textContent = 'Seen';
+        }
+    });
+
   source.onerror = () => {
     if (statusEl) statusEl.textContent = 'Reconnecting…';
   };
