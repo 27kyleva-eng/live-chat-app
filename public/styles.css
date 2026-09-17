@@ -609,3 +609,17 @@ main.shell {
   margin-top: 8px !important;
   padding: 10px !important;
 }
+/* Removes grid splitting side column spacing completely */
+.host-grid {
+  display: block !important;
+  width: 100% !important;
+  max-width: 850px !important;
+  margin: 0 auto !important;
+}
+
+/* Stretches your live message block fully down the center path frame */
+.host-grid .chat-card {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}

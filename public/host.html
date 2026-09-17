@@ -15,7 +15,7 @@
         <h3>Host Panel</h3>
         <p>Host-only administration controls go here.</p>
         
-        <!-- MOVED SHARE LINKS: Paste the entire Share Link columns here -->
+        <!-- MOVED SHARE LINKS: Tucked safely inside the sidebar menu panel layout drawer -->
         <section class="card connection-card" aria-label="Room details">
           <div class="card-body">
             <h3>Share link</h3>
@@ -42,7 +42,7 @@
   <main class="shell">
     
     <!-- The Hamburger Menu Trigger Button with Icon -->
-<button id="open-menu-btn" class="sidebar-trigger" title="Open Menu">☰</button>
+    <button id="open-menu-btn" class="sidebar-trigger" title="Open Menu">☰</button>
 
     <section class="hero">
       <div>
@@ -53,33 +53,12 @@
       <button class="primary" id="newRoom" type="button">New room</button>
     </section>
 
+    <!-- Centered single column layout setup containing ONLY the chat box frame container -->
     <section class="host-grid">
-      <aside class="card panel stack" aria-label="Share links">
-        <div>
-          <h2>Share link</h2>
-          <p>Send this to the person you want to chat with.</p>
-          <div class="link-box">
-            <code id="guestLink">Loading…</code>
-            <button id="copyGuest" type="button">Copy guest link</button>
-          </div>
-        </div>
-
-        <div>
-          <h2>Your link</h2>
-          <p>Keep this one for the operator side.</p>
-          <div class="link-box">
-            <code id="hostLink">Loading…</code>
-            <button id="copyHost" type="button">Copy host link</button>
-          </div>
-        </div>
-
-        <p class="small-note">Room <strong id="roomLabel">lobby</strong>. Messages reset if the server restarts.</p>
-        <button class="danger" id="clearChat" type="button">Clear chat</button>
-      </aside>
 
       <section class="card chat-card" aria-label="Host chat">
         <header class="topbar">
-          <div class="identity">
+          
             <div class="avatar" aria-hidden="true">🛎️</div>
             <div class="title-block">
               <strong>Operator console</strong>
@@ -101,6 +80,7 @@
           <button class="primary" type="submit">Send</button>
         </form>
       </section>
+
     </section>
   </main>
   <div class="toast" id="toast" role="status"></div>
