@@ -222,3 +222,23 @@ openSidebarBtn?.addEventListener('click', () => {
 closeSidebarBtn?.addEventListener('click', () => {
     if (sidebarElement) sidebarElement.style.width = '0'; /* Hide Drawer panel */
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+  const openBtn = document.getElementById('open-menu-btn');
+  const closeBtn = document.getElementById('close-menu-btn');
+  const sidebarMenu = document.getElementById('sidebar-menu');
+
+  // Open sidebar panel when clicking the hamburger icon
+  if (openBtn && sidebarMenu) {
+    openBtn.addEventListener('click', () => {
+      sidebarMenu.classList.add('open');
+    });
+  }
+
+  // Close sidebar panel when clicking the close button inside it
+  if (closeBtn && sidebarMenu) {
+    closeBtn.addEventListener('click', () => {
+      sidebarMenu.classList.remove('open');
+    });
+  }
+});
