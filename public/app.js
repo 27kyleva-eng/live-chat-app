@@ -3,20 +3,21 @@ const role = document.body.dataset.role || 'guest';
 let room = qs.get('room') || localStorage.getItem('funChatRoom') || 'lobby';
 localStorage.setItem('funChatRoom', room);
 
-const $ = (sel) => document.querySelector(sel);
-const messagesEl = $('#messages');
-const form = $('#composer');
-const input = $('#messageInput');
-const statusEl = $('#status');
-const roomEl = $('#roomLabel');
-const guestLinkEl = $('#guestLink');
-const hostLinkEl = $('#hostLink');
-const emptyEl = $('#empty');
-const toastEl = $('#toast');
-const nameInput = $('#nameInput');
+const messagesEl = document.querySelector('#messages');
+const form = document.querySelector('#composer');
+const input = document.querySelector('#messageInput');
+const statusEl = document.querySelector('#status');
+const roomEl = document.querySelector('#roomLabel');
+
+const guestLinkEl = document.querySelector('#shareInput') || document.querySelector('#guestLink');
+const hostLinkEl = document.querySelector('#hostInput') || document.querySelector('#hostLink');
+
+const emptyEl = document.querySelector('#empty');
+const toastEl = document.querySelector('#toast');
+const nameInput = document.querySelector('#nameInput');
 
 if (roomEl) roomEl.textContent = room;
-if (nameInput) nameInput.value = localStorage.getItem(`${role}Name`) || (role === 'host' ? 'Host' : 'Guest');
+if (nameInput) nameInput.value = localStorage.getItem(role + 'Name') || (role === 'host' ? 'Host' : 'Guest');
 
 function makeUrl(path, roomId = room) {
   const u = new URL(path, location.origin);
@@ -25,8 +26,14 @@ function makeUrl(path, roomId = room) {
 }
 
 function updateLinks() {
-  if (guestLinkEl) guestLinkEl.textContent = makeUrl('/');
-  if (hostLinkEl) hostLinkEl.textContent = makeUrl('/host');
+  if (guestLinkEl) {
+    if (guestLinkEl.tagName === 'INPUT') guestLinkEl.value = makeUrl('/');
+    else guestLinkEl.textContent = makeUrl('/');
+  }
+  if (hostLinkEl) {
+    if (hostLinkEl.tagName === 'INPUT') hostLinkEl.value = makeUrl('/host');
+    else hostLinkEl.textContent = makeUrl('/host');
+  }
 }
 updateLinks();
 
@@ -53,32 +60,29 @@ function renderMessage(msg) {
     if (emptyEl) emptyEl.remove();
     const div = document.createElement('article');
     const isMe = msg.sender === role;
-    div.className = `message ${isMe ? 'me' : 'them'}`;
+    div.className = 'message ' + (isMe ? 'me' : 'them');
     
-    div.innerHTML = `
-        <div class="byline"><span>${escapeHtml(msg.name || msg.sender)}</span></div>
-        <div>${escapeHtml(msg.text)}</div>
-        ${isMe ? `<div class="status-container"><span class="status-receipt" data-msg-id="${msg.id}">${msg.seen ? `Seen by ${escapeHtml(msg.seenBy || 'Someone')}` : 'Sent'}</span></div>` : ''}
-    `;
+    let htmlContent = '<div class="byline"><span>' + escapeHtml(msg.name || msg.sender) + '</span></div>' +
+                      '<div>' + escapeHtml(msg.text) + '</div>';
     
+    if (isMe) {
+        const seenText = msg.seen ? ('Seen by ' + escapeHtml(msg.seenBy || 'Someone')) : 'Sent';
+        htmlContent += '<div class="status-container"><span class="status-receipt" data-msg-id="' + msg.id + '">' + seenText + '</span></div>';
+    }
+    
+    div.innerHTML = htmlContent;
     messagesEl.appendChild(div);
     messagesEl.scrollTop = messagesEl.scrollHeight;
 
-    // Fixed to use nameInput?.value to match your exact login field!
     if (!isMe && !msg.seen) {
-        const myCurrentName = (nameInput?.value || (role === 'host' ? 'Host' : 'Guest')).trim();
+        const myCurrentName = (nameInput ? nameInput.value : (role === 'host' ? 'Host' : 'Guest')).trim();
         fetch('/api/seen', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                room, 
-                msgId: msg.id,
-                seenBy: myCurrentName
-            })
+            body: JSON.stringify({ room: room, msgId: msg.id, seenBy: myCurrentName })
         }).catch(err => console.error(err));
     }
 }
-
 
 function setPresence(online) {
   if (!statusEl) return;
@@ -86,16 +90,15 @@ function setPresence(online) {
   statusEl.textContent = other > 0 ? 'Someone is online now' : 'Waiting for the other person';
 }
 
-
 function connect() {
-  const source = new EventSource(`/api/events?room=${encodeURIComponent(room)}&role=${encodeURIComponent(role)}`);
+  const source = new EventSource('/api/events?room=' + encodeURIComponent(room) + '&role=' + encodeURIComponent(role));
 
   source.addEventListener('hello', (event) => {
     const data = JSON.parse(event.data);
     if (messagesEl) {
       messagesEl.innerHTML = '';
       if (!data.messages.length) {
-        messagesEl.innerHTML = `<div class="empty" id="empty"><div class="empty-icon">💬</div><strong>No messages yet.</strong><br>Send the first one and pretend you run a tiny help desk.</div>`;
+        messagesEl.innerHTML = '<div class="empty" id="empty"><div class="empty-icon">💬</div><strong>No messages yet.</strong><br>Send the first one and pretend you run a tiny help desk.</div>';
       }
       data.messages.forEach(renderMessage);
     }
@@ -105,38 +108,34 @@ function connect() {
   source.addEventListener('message', (event) => renderMessage(JSON.parse(event.data)));
   source.addEventListener('presence', (event) => setPresence(JSON.parse(event.data).online));
   source.addEventListener('clear', () => {
-    messagesEl.innerHTML = `<div class="empty" id="empty"><div class="empty-icon">✨</div><strong>Chat cleared.</strong><br>Fresh room, fresh gimmick.</div>`;
+    messagesEl.innerHTML = '<div class="empty" id="empty"><div class="empty-icon">✨</div><strong>Chat cleared.</strong><br>Fresh room, fresh gimmick.</div>';
   });
-    source.addEventListener('seen', (event) => {
-        const data = JSON.parse(event.data);
-        const receipt = document.querySelector(`.status-receipt[data-msg-id="${data.msgId}"]`);
-        if (receipt) {
-            receipt.textContent = `Seen by ${data.seenBy || 'Someone'}`;
-        }
-    });
-    source.addEventListener('typing', (event) => {
-        const data = JSON.parse(event.data);
-        if (data.sender === role) return;
+  source.addEventListener('seen', (event) => {
+      const data = JSON.parse(event.data);
+      const receipt = document.querySelector('.status-receipt[data-msg-id="' + data.msgId + '"]');
+      if (receipt) receipt.textContent = 'Seen by ' + (data.seenBy || 'Someone');
+  });
+  source.addEventListener('typing', (event) => {
+      const data = JSON.parse(event.data);
+      if (data.sender === role) return;
 
-        let typingEl = document.getElementById('typing-indicator');
-        
-        if (data.isTyping) {
-            if (!typingEl) {
-                typingEl = document.createElement('div');
-                typingEl.id = 'typing-indicator';
-                typingEl.style.fontSize = '0.85rem';
-                typingEl.style.color = '#8e8e8e';
-                typingEl.style.margin = '5px 10px';
-                typingEl.style.fontStyle = 'italic';
-                messagesEl.appendChild(typingEl);
-            }
-            typingEl.textContent = `${escapeHtml(data.name)} is purrring 🐾`;
-            messagesEl.scrollTop = messagesEl.scrollHeight;
-        } else {
-            if (typingEl) typingEl.remove();
-        }
-    });
-
+      let typingEl = document.getElementById('typing-indicator');
+      if (data.isTyping) {
+          if (!typingEl) {
+              typingEl = document.createElement('div');
+              typingEl.id = 'typing-indicator';
+              typingEl.style.fontSize = '0.85rem';
+              typingEl.style.color = '#8e8e8e';
+              typingEl.style.margin = '5px 10px';
+              typingEl.style.fontStyle = 'italic';
+              messagesEl.appendChild(typingEl);
+          }
+          typingEl.textContent = escapeHtml(data.name) + ' is purrring 🐾';
+          messagesEl.scrollTop = messagesEl.scrollHeight;
+      } else {
+          if (typingEl) typingEl.remove();
+      }
+  });
 
   source.onerror = () => {
     if (statusEl) statusEl.textContent = 'Reconnecting…';
@@ -147,28 +146,34 @@ form?.addEventListener('submit', async (event) => {
   event.preventDefault();
   const text = input.value.trim();
   if (!text) return;
-  const name = (nameInput?.value || (role === 'host' ? 'Host' : 'Guest')).trim();
-  localStorage.setItem(`${role}Name`, name);
+  const name = (nameInput ? nameInput.value : (role === 'host' ? 'Host' : 'Guest')).trim();
+  localStorage.setItem(role + 'Name', name);
   input.value = '';
   input.focus();
   await fetch('/api/send', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ room, sender: role, name, text })
+    body: JSON.stringify({ room: room, sender: role, name: name, text: text })
   });
 });
 
-$('#copyGuest')?.addEventListener('click', async () => {
-  await navigator.clipboard.writeText(makeUrl('/'));
+const copyGuestAction = () => {
+  const targetVal = guestLinkEl ? guestLinkEl.value : makeUrl('/');
+  navigator.clipboard.writeText(targetVal);
   showToast('Guest link copied');
-});
+};
+document.querySelector('#copyBtn')?.addEventListener('click', copyGuestAction);
+document.querySelector('#copyGuest')?.addEventListener('click', copyGuestAction);
 
-$('#copyHost')?.addEventListener('click', async () => {
-  await navigator.clipboard.writeText(makeUrl('/host'));
+const copyHostAction = () => {
+  const targetVal = hostLinkEl ? hostLinkEl.value : makeUrl('/host');
+  navigator.clipboard.writeText(targetVal);
   showToast('Host link copied');
-});
+};
+document.querySelector('#copyHostBtn')?.addEventListener('click', copyHostAction);
+document.querySelector('#copyHost')?.addEventListener('click', copyHostAction);
 
-$('#newRoom')?.addEventListener('click', async () => {
+document.querySelector('#newRoom')?.addEventListener('click', async () => {
   const res = await fetch('/api/new-room');
   const data = await res.json();
   room = data.room;
@@ -178,82 +183,53 @@ $('#newRoom')?.addEventListener('click', async () => {
   location.href = url.toString();
 });
 
-$('#clearChat')?.addEventListener('click', async () => {
+const clearChatAction = async () => {
   if (!confirm('Clear this room’s messages?')) return;
   await fetch('/api/clear', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ room })
+    body: JSON.stringify({ room: room })
   });
-});
-// Monitor keyboard typing inputs
+};
+document.querySelector('#clearBtn')?.addEventListener('click', clearChatAction);
+document.querySelector('#clearChat')?.addEventListener('click', clearChatAction);
+
 let typingTimeout;
 input?.addEventListener('input', () => {
-    const myCurrentName = (nameInput?.value || (role === 'host' ? 'Host' : 'Guest')).trim();
-    
-    // Send a "typing start" notification to the server
+    const myCurrentName = (nameInput ? nameInput.value : (role === 'host' ? 'Host' : 'Guest')).trim();
     fetch('/api/typing', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ room, sender: role, name: myCurrentName, isTyping: true })
+        body: JSON.stringify({ room: room, sender: role, name: myCurrentName, isTyping: true })
     }).catch(err => console.error(err));
 
-    // Clear indicator after 2 seconds of silence
     clearTimeout(typingTimeout);
     typingTimeout = setTimeout(() => {
         fetch('/api/typing', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ room, sender: role, name: myCurrentName, isTyping: false })
+            body: JSON.stringify({ room: room, sender: role, name: myCurrentName, isTyping: false })
         }).catch(err => console.error(err));
     }, 2000);
 });
 
 connect();
-// Sidebar open and close click event handlers
-const sidebarElement = document.getElementById('sidebar-menu');
-const openSidebarBtn = document.getElementById('open-menu-btn');
-const closeSidebarBtn = document.getElementById('close-menu-btn');
 
-openSidebarBtn?.addEventListener('click', () => {
-    if (sidebarElement) sidebarElement.style.width = '240px'; /* Reveal Drawer panel */
-});
-
-closeSidebarBtn?.addEventListener('click', () => {
-    if (sidebarElement) sidebarElement.style.width = '0'; /* Hide Drawer panel */
-});
-
-// Sidebar drawer open/close logic
-document.addEventListener('DOMContentLoaded', () => {
-  const openBtn = document.getElementById('open-menu-btn');
-  const closeBtn = document.getElementById('close-menu-btn');
-  const sidebarMenu = document.getElementById('sidebar-menu');
-
-if (openBtn && sidebarMenu) {
-    openBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      sidebarMenu.classList.add('open');
-    });
-  }
-
-if (closeBtn && sidebarMenu) {
-    closeBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      sidebarMenu.classList.remove('open');
-    });
-  }
-});
-
-// This wrapper ensures ALL buttons inside the sidebar work cleanly on click
 document.addEventListener('DOMContentLoaded', () => {
   const openBtn = document.getElementById('open-menu-btn');
   const closeBtn = document.getElementById('close-menu-btn');
   const sidebarMenu = document.getElementById('sidebar-menu');
 
   if (openBtn && sidebarMenu) {
-    openBtn.addEventListener('click', () => sidebarMenu.classList.add('open'));
+    openBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      sidebarMenu.classList.add('open');
+    });
   }
   if (closeBtn && sidebarMenu) {
-    closeBtn.addEventListener('click', () => sidebarMenu.classList.remove('open'));
+    closeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      sidebarMenu.classList.remove('open');
+    });
   }
 });
