@@ -549,3 +549,29 @@ main.shell {
 #sidebar-menu.open {
   left: 0;
 }
+
+/* Styles the Hamburger Icon Button */
+.sidebar-trigger {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  font-size: 28px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #333333;
+  padding: 5px 10px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  z-index: 999;
+}
+
+.sidebar-trigger:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Ensure inside the sidebar can handle scroll if link box is large */
+.sidebar-links {
+  height: calc(100% - 60px);
+  overflow-y: auto;
+}

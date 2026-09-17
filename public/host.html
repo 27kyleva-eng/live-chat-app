@@ -14,13 +14,35 @@
       <div class="sidebar-content">
         <h3>Host Panel</h3>
         <p>Host-only administration controls go here.</p>
+        
+        <!-- MOVED SHARE LINKS: Paste the entire Share Link columns here -->
+        <section class="card connection-card" aria-label="Room details">
+          <div class="card-body">
+            <h3>Share link</h3>
+            <p class="meta text-muted">Send this to the person you want to chat with.</p>
+            <input type="text" id="shareInput" readonly class="text-input font-mono">
+            <button id="copyBtn" class="secondary w-full">Copy guest link</button>
+            
+            <h3 style="margin-top: 1.5rem;">Your link</h3>
+            <p class="meta text-muted">Keep this one for the operator side.</p>
+            <input type="text" id="hostInput" readonly class="text-input font-mono">
+            <button id="copyHostBtn" class="secondary w-full">Copy host link</button>
+            
+            <p class="meta text-muted" style="margin-top: 1rem;">
+              Room <span id="roomLabel">lobby</span>. Messages reset if the server restarts.
+            </p>
+            <button id="clearBtn" class="danger w-full" style="margin-top: 1rem;">Clear chat</button>
+          </div>
+        </section>
+
       </div>
     </div>
   </div>
 
   <main class="shell">
-      <!-- The Hamburger Menu Trigger Button -->
-    <button id="open-menu-btn" class="sidebar-trigger">&#9776; Open Host Menu</button>
+    
+    <!-- The Hamburger Menu Trigger Button with Icon -->
+    <button id="open-menu-btn" class="sidebar-trigger" title="Open Menu">☰</button>
 
     <section class="hero">
       <div>
