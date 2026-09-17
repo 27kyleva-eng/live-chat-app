@@ -689,3 +689,19 @@ button#close-menu-btn:hover {
   border-radius: 0 !important;
 }
 
+/* Forces your main host dashboard grid to act as a single centered column */
+.host-grid {
+  display: block !important;
+  width: 100% !important;
+  max-width: 850px !important;
+  margin: 0 auto !important;
+}
+
+/* Stretches and centers both the guest and host chat views smoothly down the middle path */
+.chat-card,
+.host-grid .chat-card {
+  width: 100% !important;
+  max-width: 850px !important;
+  margin: 0 auto !important;
+  box-sizing: border-box !important;
+}

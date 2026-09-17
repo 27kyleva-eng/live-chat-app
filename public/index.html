@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -7,31 +7,12 @@
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body data-role="guest">
-    <!-- Sliding Sidebar Menu -->
-    <div id="sidebar-menu" class="sidebar-nav">
-        <!-- Close Button -->
-        <button id="close-menu-btn" class="sidebar-close">&times;</button>
-        
-        <!-- Sidebar Navigation Badges -->
-        <div class="sidebar-links">
-            <a href="#" class="sidebar-badge active" title="Chat Area">
-                <span class="badge-icon">💬</span>
-                <span class="badge-text">Chat</span>
-            </a>
-            <a href="#" class="sidebar-badge" title="Settings">
-                <span class="badge-icon">⚙️</span>
-                <span class="badge-text">Settings</span>
-            </a>
-        </div>
-    </div>
 
-    <!-- The Menu Hamburger Trigger Button -->
-    <button id="open-menu-btn" class="sidebar-trigger">&#9776;</button>
-
+  <!-- Main Centered Application Frame -->
   <main class="shell">
+
     <section class="hero">
       <div>
-        <span class="kicker"><span class="dot"></span> Live browser chat</span>
         <h1>Tiny Help Desk</h1>
         <p class="subtitle">A just-for-fun customer service style chat. No phone numbers, no accounts, just open the link and start typing.</p>
       </div>
@@ -39,11 +20,10 @@
 
     <section class="card chat-card" aria-label="Guest chat">
       <header class="topbar">
-        <div class="identity">
-          <div class="avatar" aria-hidden="true">🎧</div>
+        
           <div class="title-block">
             <strong>Customer chat</strong>
-            <span class="meta"><span id="status">Connecting…</span> · Room <span id="roomLabel">lobby</span></span>
+            <span class="meta"><span id="status">Connecting...</span> - Room <span id="roomLabel">lobby</span></span>
           </div>
         </div>
         <div class="toolbar">
@@ -53,17 +33,20 @@
       </header>
 
       <div class="messages" id="messages" aria-live="polite">
-        <div class="empty" id="empty"><div class="empty-icon">💬</div><strong>No messages yet.</strong><br>Send the first one and pretend you need support.</div>
+        <div class="empty" id="empty"><div class="empty-icon">💬</div><strong>No messages yet.</strong><br>Send the first one and pretend you run a tiny help desk.</div>
       </div>
 
+      <!-- Dedicated typing container pinned permanently right below the scroll area -->
+      <div id="typing-container" style="min-height: 25px; padding: 0 15px; background: transparent;"></div>
+
       <form class="composer" id="composer">
-        <input id="messageInput" autocomplete="off" maxlength="1200" placeholder="Type your message…" aria-label="Message">
+        <input id="messageInput" autocomplete="off" maxlength="1200" placeholder="Type a message..." aria-label="Message">
         <button class="primary" type="submit">Send</button>
       </form>
     </section>
+
   </main>
-  <div class="toast" id="toast" role="status"></div>
+
   <script src="/app.js"></script>
 </body>
 </html>
-<body>
