@@ -115,25 +115,39 @@ function connect() {
       const receipt = document.querySelector('.status-receipt[data-msg-id="' + data.msgId + '"]');
       if (receipt) receipt.textContent = 'Seen by ' + (data.seenBy || 'Someone');
   });
+  
   source.addEventListener('typing', (event) => {
       const data = JSON.parse(event.data);
       if (data.sender === role) return;
 
-      let typingEl = document.getElementById('typing-indicator');
+      // Pinned typing listener targets the bottom container bar layout
+      const containerEl = document.getElementById('typing-container');
+      
       if (data.isTyping) {
-          if (!typingEl) {
-              typingEl = document.createElement('div');
-              typingEl.id = 'typing-indicator';
-              typingEl.style.fontSize = '0.85rem';
-              typingEl.style.color = '#8e8e8e';
-              typingEl.style.margin = '5px 10px';
-              typingEl.style.fontStyle = 'italic';
-              messagesEl.appendChild(typingEl);
+          if (containerEl) {
+              containerEl.innerHTML = '<div id="typing-indicator" style="font-size: 0.85rem; color: #8e8e8e; font-style: italic; margin: 5px 0;">' + escapeHtml(data.name) + ' is purrring 🐾</div>';
+          } else {
+              // Fallback placement rule inside message array if container is missing
+              let typingEl = document.getElementById('typing-indicator');
+              if (!typingEl) {
+                  typingEl = document.createElement('div');
+                  typingEl.id = 'typing-indicator';
+                  typingEl.style.fontSize = '0.85rem';
+                  typingEl.style.color = '#8e8e8e';
+                  typingEl.style.margin = '5px 10px';
+                  typingEl.style.fontStyle = 'italic';
+                  messagesEl.appendChild(typingEl);
+              }
+              typingEl.textContent = escapeHtml(data.name) + ' is purrring 🐾';
           }
-          typingEl.textContent = escapeHtml(data.name) + ' is purrring 🐾';
-          messagesEl.scrollTop = messagesEl.scrollHeight;
+          if (messagesEl) messagesEl.scrollTop = messagesEl.scrollHeight;
       } else {
-          if (typingEl) typingEl.remove();
+          if (containerEl) {
+              containerEl.innerHTML = '';
+          } else {
+              let typingEl = document.getElementById('typing-indicator');
+              if (typingEl) typingEl.remove();
+          }
       }
   });
 
@@ -158,7 +172,7 @@ form?.addEventListener('submit', async (event) => {
 });
 
 const copyGuestAction = () => {
-  const targetVal = guestLinkEl ? guestLinkEl.value : makeUrl('/');
+  const targetVal = guestLinkEl ? (guestLinkEl.value || guestLinkEl.textContent) : makeUrl('/');
   navigator.clipboard.writeText(targetVal);
   showToast('Guest link copied');
 };
@@ -166,7 +180,7 @@ document.querySelector('#copyBtn')?.addEventListener('click', copyGuestAction);
 document.querySelector('#copyGuest')?.addEventListener('click', copyGuestAction);
 
 const copyHostAction = () => {
-  const targetVal = hostLinkEl ? hostLinkEl.value : makeUrl('/host');
+  const targetVal = hostLinkEl ? (hostLinkEl.value || hostLinkEl.textContent) : makeUrl('/host');
   navigator.clipboard.writeText(targetVal);
   showToast('Host link copied');
 };
@@ -215,6 +229,7 @@ input?.addEventListener('input', () => {
 
 connect();
 
+// Drawer Panel open and close toggle listeners
 document.addEventListener('DOMContentLoaded', () => {
   const openBtn = document.getElementById('open-menu-btn');
   const closeBtn = document.getElementById('close-menu-btn');
