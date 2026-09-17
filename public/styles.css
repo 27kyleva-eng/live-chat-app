@@ -531,3 +531,35 @@ main.shell {
   border-radius: 4px;
   z-index: 999;
 }
+
+/* Forces cards inside the side panel to scale up and fit comfortably */
+#sidebar-menu .connection-card,
+#sidebar-menu .card {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  margin: 15px 0 0 0 !important;
+  padding: 10px !important;
+  box-shadow: none !important;
+  box-sizing: border-box !important;
+}
+
+/* Forces the input text fields inside the sidebar to display fully */
+#sidebar-menu input.text-input,
+#sidebar-menu input[type="text"] {
+  width: 100% !important;
+  max-width: 100% !important;
+  display: block !important;
+  padding: 10px !important;
+  box-sizing: border-box !important;
+}
+
+/* Stretches the action buttons across the width of the panel drawer */
+#sidebar-menu button.secondary,
+#sidebar-menu button.danger {
+  width: 100% !important;
+  display: block !important;
+  margin-top: 10px !important;
+  padding: 10px !important;
+  box-sizing: border-box !important;
+}
