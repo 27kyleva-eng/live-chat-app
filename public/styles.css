@@ -623,3 +623,27 @@ main.shell {
   max-width: 100% !important;
   box-sizing: border-box !important;
 }
+/* Position the X close button perfectly in the top right corner */
+#sidebar-menu button.sidebar-close {
+  position: absolute !important;
+  top: 15px !important;
+  right: 15px !important;
+  font-size: 28px !important;
+  font-weight: bold !important;
+  background: none !important;
+  border: none !important;
+  color: #333333 !important; /* Base visible color */
+  cursor: pointer !important;
+  padding: 5px 10px !important;
+  line-height: 1 !important;
+  transition: color 0.2s ease, opacity 0.2s ease !important;
+  z-index: 1010 !important;
+}
+
+/* Ensure it stays fully visible and slightly darkens on hover instead of disappearing */
+#sidebar-menu button.sidebar-close:hover {
+  color: #ff4d4f !important; /* Changes to a soft red accent on hover */
+  background: rgba(0, 0, 0, 0.05) !important; /* Soft circular backdrop highlight */
+  border-radius: 50% !important;
+  opacity: 1 !important;
+}
