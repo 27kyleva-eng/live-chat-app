@@ -7,7 +7,21 @@
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body data-role="host">
+  <!-- Sliding Sidebar Menu -->
+  <div id="sidebar-menu" class="sidebar-nav">
+    <button id="close-menu-btn" class="sidebar-close">&times;</button>
+    <div class="sidebar-links">
+      <div class="sidebar-content">
+        <h3>Host Panel</h3>
+        <p>Host-only administration controls go here.</p>
+      </div>
+    </div>
+  </div>
+
   <main class="shell">
+      <!-- The Hamburger Menu Trigger Button -->
+    <button id="open-menu-btn" class="sidebar-trigger">&#9776; Open Host Menu</button>
+
     <section class="hero">
       <div>
         <span class="kicker"><span class="dot"></span> Operator dashboard</span>
