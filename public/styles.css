@@ -501,14 +501,14 @@ main.shell {
 #sidebar-menu {
   position: fixed;
   top: 0;
-  left: -400px; /* Hides it completely off screen to the left */
-  width: 400px;  /* Plenty of room for your cards */
+  left: -470px; /* Hides it completely off screen to the left */
+  width: 450px;  /* Plenty of room for your cards */
   height: 100vh;
   background-color: #ffffff;
   box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
   transition: left 0.3s ease-in-out; /* Smooth sliding transition animation */
   z-index: 1000;
-  padding: 20px;
+  padding: 30px 20px;
   box-sizing: border-box;
 }
 
