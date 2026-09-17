@@ -501,8 +501,8 @@ main.shell {
 #sidebar-menu {
   position: fixed;
   top: 0;
-  left: -300px; /* Hidden off-screen to the left by default */
-  width: 300px;
+  left: -400px; /* Hides it completely off screen to the left */
+  width: 400px;  /* Plenty of room for your cards */
   height: 100vh;
   background-color: #ffffff;
   box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
@@ -514,43 +514,10 @@ main.shell {
 
 /* Slides the menu fully onto the screen when active */
 #sidebar-menu.open {
-  left: 0;
-}
-/* Centers your entire app layout smoothly */
-main.shell {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  min-height: 100vh;
-  width: 100%;
-  max-width: 900px;  /* Keeps the card layout from becoming too wide */
-  margin: 0 auto;    /* Pushes equal spacing to left and right */
-  padding: 40px 20px;
-  box-sizing: border-box;
+  left: 0 !important; /* Force it to slide into view */
 }
 
-/* Base style for your host sidebar sliding panel */
-#sidebar-menu {
-  position: fixed;
-  top: 0;
-  left: -300px; /* Hidden off-screen to the left by default */
-  width: 300px;
-  height: 100vh;
-  background-color: #ffffff;
-  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
-  transition: left 0.3s ease-in-out; /* Smooth sliding transition animation */
-  z-index: 1000;
-  padding: 20px;
-  box-sizing: border-box;
-}
-
-/* Slides the menu fully onto the screen when active */
-#sidebar-menu.open {
-  left: 0;
-}
-
-/* Styles the Hamburger Icon Button */
+/* Styles the floating Hamburger Icon Button */
 .sidebar-trigger {
   position: fixed;
   top: 20px;
@@ -562,16 +529,5 @@ main.shell {
   color: #333333;
   padding: 5px 10px;
   border-radius: 4px;
-  transition: background-color 0.2s;
   z-index: 999;
-}
-
-.sidebar-trigger:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
-/* Ensure inside the sidebar can handle scroll if link box is large */
-.sidebar-links {
-  height: calc(100% - 60px);
-  overflow-y: auto;
 }
