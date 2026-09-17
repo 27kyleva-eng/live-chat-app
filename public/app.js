@@ -242,3 +242,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+// This wrapper ensures ALL buttons inside the sidebar work cleanly on click
+document.addEventListener('DOMContentLoaded', () => {
+  const openBtn = document.getElementById('open-menu-btn');
+  const closeBtn = document.getElementById('close-menu-btn');
+  const sidebarMenu = document.getElementById('sidebar-menu');
+
+  if (openBtn && sidebarMenu) {
+    openBtn.addEventListener('click', () => sidebarMenu.classList.add('open'));
+  }
+  if (closeBtn && sidebarMenu) {
+    closeBtn.addEventListener('click', () => sidebarMenu.classList.remove('open'));
+  }
+});

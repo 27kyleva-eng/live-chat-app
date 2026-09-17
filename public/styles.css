@@ -563,3 +563,49 @@ main.shell {
   padding: 10px !important;
   box-sizing: border-box !important;
 }
+
+/* Widen the sidebar container itself so the copy links fit perfectly */
+.sidebar-nav {
+  position: fixed;
+  top: 0;
+  left: -450px; /* Shifted to match new width */
+  width: 450px !important; /* Increased from 400px to 450px */
+  height: 100vh;
+  background-color: #ffffff;
+  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+  transition: left 0.3s ease-in-out;
+  z-index: 1000;
+  padding: 30px 20px;
+  box-sizing: border-box;
+}
+
+/* Update slide transition target to 0 */
+.sidebar-nav.open {
+  left: 0 !important;
+}
+
+/* Force the cards and buttons inside the sidebar layout to expand fully */
+.sidebar-nav .card, 
+.sidebar-nav .connection-card,
+.sidebar-nav .card-body {
+  width: 100% !important;
+  max-width: 100% !important;
+  display: block !important;
+  margin: 15px 0 !important;
+  padding: 10px !important;
+  box-sizing: border-box !important;
+}
+
+.sidebar-nav input {
+  width: 100% !important;
+  display: block !important;
+  padding: 8px !important;
+  box-sizing: border-box !important;
+}
+
+.sidebar-nav button {
+  width: 100% !important;
+  display: block !important;
+  margin-top: 8px !important;
+  padding: 10px !important;
+}
