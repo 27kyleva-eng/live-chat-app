@@ -16,13 +16,15 @@ const emptyEl = document.querySelector('#empty');
 const toastEl = document.querySelector('#toast');
 const nameInput = document.querySelector('#nameInput');
 
+// Track attached base64 image data
+let pendingImageData = null;
+
 // Keep track of the other user's name globally
 let otherPartyName = role === 'host' ? 'Guest' : 'Host';
 
 if (roomEl) roomEl.textContent = room;
 if (nameInput) nameInput.value = localStorage.getItem(role + 'Name') || (role === 'host' ? 'Host' : 'Guest');
 
-// Helper function to keep placeholder updated with the other person's name
 function updateDynamicPlaceholder() {
   if (input) {
     input.placeholder = `Meow back at ${otherPartyName}...`;
@@ -58,22 +60,21 @@ function escapeHtml(text) {
   return text.replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 }
 
-function formatTime(iso) {
-  try {
-    return new Intl.DateTimeFormat([], { hour: 'numeric', minute: '2-digit' }).format(new Date(iso));
-  } catch {
-    return '';
-  }
-}
-
 function renderMessage(msg) {
     if (emptyEl) emptyEl.remove();
     const div = document.createElement('article');
     const isMe = msg.sender === role;
     div.className = 'message ' + (isMe ? 'me' : 'them');
     
-    let htmlContent = '<div class="byline"><span>' + escapeHtml(msg.name || msg.sender) + '</span></div>' +
-                      '<div>' + escapeHtml(msg.text) + '</div>';
+    let htmlContent = '<div class="byline"><span>' + escapeHtml(msg.name || msg.sender) + '</span></div>';
+    
+    if (msg.text) {
+        htmlContent += '<div>' + escapeHtml(msg.text) + '</div>';
+    }
+
+    if (msg.image) {
+        htmlContent += '<div><img src="' + msg.image + '" class="message-image" alt="Attached image" /></div>';
+    }
     
     if (isMe) {
         const seenText = msg.seen ? ('Seen by ' + escapeHtml(msg.seenBy || 'Someone')) : 'Sent';
@@ -84,7 +85,6 @@ function renderMessage(msg) {
     messagesEl.appendChild(div);
     messagesEl.scrollTop = messagesEl.scrollHeight;
 
-    // Track the other person's name when their message arrives
     if (!isMe) {
         otherPartyName = (msg.name || msg.sender).trim() || (role === 'host' ? 'Guest' : 'Host');
         updateDynamicPlaceholder();
@@ -115,7 +115,6 @@ function connect() {
         messagesEl.innerHTML = '<div class="empty" id="empty"><div class="empty-icon">🐾</div><strong>Meow-nagement Dashboard</strong><br>No active tickets in the queue. Everything is running purr-fectly!</div>';
       }
       
-      // Determine other party name from existing history if available
       const lastThemMessage = [...data.messages].reverse().find(m => m.sender !== role);
       if (lastThemMessage) {
          otherPartyName = (lastThemMessage.name || lastThemMessage.sender).trim();
@@ -183,19 +182,34 @@ function connect() {
   };
 }
 
+// Form Submission with Text + Image payload
 form?.addEventListener('submit', async (event) => {
   event.preventDefault();
   const text = input.value.trim();
-  if (!text) return;
+  
+  // Allow sending if there's either text OR an image
+  if (!text && !pendingImageData) return;
+
   const name = (nameInput ? nameInput.value : (role === 'host' ? 'Host' : 'Guest')).trim();
   localStorage.setItem(role + 'Name', name);
+  
+  const payload = {
+    room: room,
+    sender: role,
+    name: name,
+    text: text,
+    image: pendingImageData
+  };
+
   input.value = '';
+  clearImagePreview();
   input.focus();
   updateDynamicPlaceholder();
+
   await fetch('/api/send', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ room: room, sender: role, name: name, text: text })
+    body: JSON.stringify(payload)
   });
 });
 
@@ -237,28 +251,19 @@ document.querySelector('#clearBtn')?.addEventListener('click', clearChatAction);
 
 connect();
 
-// Sidebar Drawer Menu Navigation Toggle Controller
+// Navigation Drawer
 const openMenuBtn = document.getElementById('open-menu-btn');
 const closeMenuBtn = document.getElementById('close-menu-btn');
 const sidebarMenu = document.getElementById('sidebar-menu');
 
-if (openMenuBtn && sidebarMenu) {
-  openMenuBtn.addEventListener('click', () => {
-    sidebarMenu.classList.add('open');
-  });
-}
+if (openMenuBtn && sidebarMenu) openMenuBtn.addEventListener('click', () => sidebarMenu.classList.add('open'));
+if (closeMenuBtn && sidebarMenu) closeMenuBtn.addEventListener('click', () => sidebarMenu.classList.remove('open'));
 
-if (closeMenuBtn && sidebarMenu) {
-  closeMenuBtn.addEventListener('click', () => {
-    sidebarMenu.classList.remove('open');
-  });
-}
-
-// Single Consolidated Drag & Drop / File Attachment Logic
+// Drag-and-Drop & Attachment Engine
 document.addEventListener('DOMContentLoaded', () => {
   const dropZone = document.getElementById('drop-zone');
   const fileInput = document.getElementById('file-input');
-  const attachBtn = document.getElementById('attach-btn') || document.getElementById('attachment-btn');
+  const attachBtn = document.getElementById('attachment-btn') || document.getElementById('attach-btn');
 
   if (attachBtn && fileInput) {
     attachBtn.addEventListener('click', () => fileInput.click());
@@ -266,23 +271,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (dropZone && fileInput) {
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-      dropZone.addEventListener(eventName, (e) => {
+      window.addEventListener(eventName, (e) => {
         e.preventDefault();
         e.stopPropagation();
       }, false);
     });
 
     ['dragenter', 'dragover'].forEach(eventName => {
-      dropZone.addEventListener(eventName, () => dropZone.classList.add('active', 'drag-over'), false);
+      window.addEventListener(eventName, () => dropZone.classList.add('drag-over'), false);
     });
 
     ['dragleave', 'drop'].forEach(eventName => {
-      dropZone.addEventListener(eventName, () => dropZone.classList.remove('active', 'drag-over'), false);
+      window.addEventListener(eventName, () => dropZone.classList.remove('drag-over'), false);
     });
 
-    dropZone.addEventListener('drop', (e) => {
-      const files = e.dataTransfer.files;
-      handleImageFiles(files);
+    window.addEventListener('drop', (e) => {
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        handleImageFiles(e.dataTransfer.files);
+      }
     });
 
     fileInput.addEventListener('change', (e) => {
@@ -303,7 +309,28 @@ function handleImageFiles(files) {
   const reader = new FileReader();
   reader.readAsDataURL(file);
   reader.onloadend = () => {
-    const base64Image = reader.result;
-    console.log('Image encoded successfully:', base64Image);
+    pendingImageData = reader.result;
+    showImagePreview(pendingImageData);
   };
+}
+
+function showImagePreview(src) {
+  clearImagePreview();
+  const previewDiv = document.createElement('div');
+  previewDiv.id = 'image-preview';
+  previewDiv.className = 'image-preview-container';
+  previewDiv.innerHTML = `
+    <img src="${src}" class="image-preview-thumb" alt="Preview" />
+    <span style="font-size:0.85rem; color:#aaa;">Image attached</span>
+    <button type="button" class="remove-image-btn" onclick="clearImagePreview()">✕</button>
+  `;
+  if (form) form.parentNode.insertBefore(previewDiv, form);
+}
+
+function clearImagePreview() {
+  pendingImageData = null;
+  const existing = document.getElementById('image-preview');
+  if (existing) existing.remove();
+  const fileInput = document.getElementById('file-input');
+  if (fileInput) fileInput.value = '';
 }
