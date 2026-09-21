@@ -254,3 +254,55 @@ if (closeMenuBtn && sidebarMenu) {
     sidebarMenu.classList.remove('open');
   });
 }
+
+// Image Drag & Drop Logic
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+
+if (dropZone && fileInput) {
+  // Prevent browser default behavior (opening file in tab)
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    }, false);
+  });
+
+  // Visual highlights on drag over
+  ['dragenter', 'dragover'].forEach(eventName => {
+    dropZone.addEventListener(eventName, () => dropZone.classList.add('active'), false);
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, () => dropZone.classList.remove('active'), false);
+  });
+
+  // Handle dropped files
+  dropZone.addEventListener('drop', (e) => {
+    const files = e.dataTransfer.files;
+    handleImageFiles(files);
+  });
+
+  // Handle manual file selection via browse click
+  fileInput.addEventListener('change', (e) => {
+    handleImageFiles(e.target.files);
+  });
+}
+
+function handleImageFiles(files) {
+  if (files.length === 0) return;
+  const file = files[0];
+
+  if (!file.type.startsWith('image/')) {
+    alert('Please upload an image file!');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.readAsDataURL(file);
+  reader.onloadend = () => {
+    const base64Image = reader.result;
+    console.log('Image ready to send:', base64Image);
+    // Ready for message payload integration
+  };
+}
