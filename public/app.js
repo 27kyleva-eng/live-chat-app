@@ -19,6 +19,17 @@ const nameInput = document.querySelector('#nameInput');
 if (roomEl) roomEl.textContent = room;
 if (nameInput) nameInput.value = localStorage.getItem(role + 'Name') || (role === 'host' ? 'Host' : 'Guest');
 
+// Dynamically update chat input placeholder based on the active display name
+function updateDynamicPlaceholder() {
+  if (nameInput && input) {
+    const currentName = nameInput.value.trim() || 'them';
+    input.placeholder = `Meow back at ${currentName}...`;
+  }
+}
+if (nameInput) {
+  nameInput.addEventListener('input', updateDynamicPlaceholder);
+}
+
 function makeUrl(path, roomId = room) {
   const u = new URL(path, location.origin);
   u.searchParams.set('room', roomId);
@@ -103,13 +114,17 @@ function connect() {
       data.messages.forEach(renderMessage);
     }
     setPresence(data.online);
+    updateDynamicPlaceholder(); // Initialize placeholder once configuration finishes loading
   });
 
   source.addEventListener('message', (event) => renderMessage(JSON.parse(event.data)));
   source.addEventListener('presence', (event) => setPresence(JSON.parse(event.data).online));
+  
+  // Custom theme implemented when chat gets cleared
   source.addEventListener('clear', () => {
-    messagesEl.innerHTML = '<div class="empty" id="empty"><div class="empty-icon">✨</div><strong>Chat cleared.</strong><br>Fresh room, fresh gimmick.</div>';
+    messagesEl.innerHTML = '<div class="empty" id="empty"><div class="empty-icon">🐾</div><strong>Chat cleared.</strong><br>Fresh space, purr-fect place.</div>';
   });
+  
   source.addEventListener('seen', (event) => {
       const data = JSON.parse(event.data);
       const receipt = document.querySelector('.status-receipt[data-msg-id="' + data.msgId + '"]');
@@ -120,15 +135,13 @@ function connect() {
       const data = JSON.parse(event.data);
       if (data.sender === role) return;
 
-      // Pinned typing listener targets the bottom container bar layout
-      const containerEl = document.getElementById('typing-container');
+       const containerEl = document.getElementById('typing-container');
       
       if (data.isTyping) {
           if (containerEl) {
               containerEl.innerHTML = '<div id="typing-indicator" style="font-size: 0.85rem; color: #8e8e8e; font-style: italic; margin: 5px 0;">' + escapeHtml(data.name) + ' is purrring 🐾</div>';
           } else {
-              // Fallback placement rule inside message array if container is missing
-              let typingEl = document.getElementById('typing-indicator');
+               let typingEl = document.getElementById('typing-indicator');
               if (!typingEl) {
                   typingEl = document.createElement('div');
                   typingEl.id = 'typing-indicator';
@@ -206,45 +219,7 @@ const clearChatAction = async () => {
   });
 };
 document.querySelector('#clearBtn')?.addEventListener('click', clearChatAction);
-document.querySelector('#clearChat')?.addEventListener('click', clearChatAction);
 
-let typingTimeout;
-input?.addEventListener('input', () => {
-    const myCurrentName = (nameInput ? nameInput.value : (role === 'host' ? 'Host' : 'Guest')).trim();
-    fetch('/api/typing', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ room: room, sender: role, name: myCurrentName, isTyping: true })
-    }).catch(err => console.error(err));
-
-    clearTimeout(typingTimeout);
-    typingTimeout = setTimeout(() => {
-        fetch('/api/typing', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ room: room, sender: role, name: myCurrentName, isTyping: false })
-        }).catch(err => console.error(err));
-    }, 2000);
-});
-
+// Initialize connection logic
 connect();
-
-// Drawer Panel open and close toggle listeners
-document.addEventListener('DOMContentLoaded', () => {
-  const openBtn = document.getElementById('open-menu-btn');
-  const closeBtn = document.getElementById('close-menu-btn');
-  const sidebarMenu = document.getElementById('sidebar-menu');
-
-  if (openBtn && sidebarMenu) {
-    openBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      sidebarMenu.classList.add('open');
-    });
-  }
-  if (closeBtn && sidebarMenu) {
-    closeBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      sidebarMenu.classList.remove('open');
-    });
-  }
-});
+ 
