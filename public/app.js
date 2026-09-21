@@ -16,18 +16,17 @@ const emptyEl = document.querySelector('#empty');
 const toastEl = document.querySelector('#toast');
 const nameInput = document.querySelector('#nameInput');
 
+// Keep track of the other user's name globally
+let otherPartyName = role === 'host' ? 'Guest' : 'Host';
+
 if (roomEl) roomEl.textContent = room;
 if (nameInput) nameInput.value = localStorage.getItem(role + 'Name') || (role === 'host' ? 'Host' : 'Guest');
 
-// Dynamically update chat input placeholder based on the active display name
+// Helper function to keep placeholder updated with the other person's name
 function updateDynamicPlaceholder() {
-  if (nameInput && input) {
-    const currentName = nameInput.value.trim() || 'them';
-    input.placeholder = `Meow back at ${currentName}...`;
+  if (input) {
+    input.placeholder = `Meow back at ${otherPartyName}...`;
   }
-}
-if (nameInput) {
-  nameInput.addEventListener('input', updateDynamicPlaceholder);
 }
 
 function makeUrl(path, roomId = room) {
@@ -85,7 +84,11 @@ function renderMessage(msg) {
     messagesEl.appendChild(div);
     messagesEl.scrollTop = messagesEl.scrollHeight;
 
-    if (!isMe && !msg.seen) {
+    // Track the other person's name when their message arrives
+    if (!isMe) {
+        otherPartyName = (msg.name || msg.sender).trim() || (role === 'host' ? 'Guest' : 'Host');
+        updateDynamicPlaceholder();
+
         const myCurrentName = (nameInput ? nameInput.value : (role === 'host' ? 'Host' : 'Guest')).trim();
         fetch('/api/seen', {
             method: 'POST',
@@ -111,16 +114,22 @@ function connect() {
       if (!data.messages.length) {
         messagesEl.innerHTML = '<div class="empty" id="empty"><div class="empty-icon">💬</div><strong>No messages yet.</strong><br>Send the first one and pretend you run a tiny help desk.</div>';
       }
+      
+      // Determine other party name from existing history if available
+      const lastThemMessage = [...data.messages].reverse().find(m => m.sender !== role);
+      if (lastThemMessage) {
+         otherPartyName = (lastThemMessage.name || lastThemMessage.sender).trim();
+      }
+      
       data.messages.forEach(renderMessage);
     }
     setPresence(data.online);
-    updateDynamicPlaceholder(); // Initialize placeholder once configuration finishes loading
+    updateDynamicPlaceholder();
   });
 
   source.addEventListener('message', (event) => renderMessage(JSON.parse(event.data)));
   source.addEventListener('presence', (event) => setPresence(JSON.parse(event.data).online));
   
-  // Custom theme implemented when chat gets cleared
   source.addEventListener('clear', () => {
     messagesEl.innerHTML = '<div class="empty" id="empty"><div class="empty-icon">🐾</div><strong>Chat cleared.</strong><br>Fresh space, purr-fect place.</div>';
   });
@@ -135,13 +144,19 @@ function connect() {
       const data = JSON.parse(event.data);
       if (data.sender === role) return;
 
-       const containerEl = document.getElementById('typing-container');
+      const containerEl = document.getElementById('typing-container');
       
       if (data.isTyping) {
+          // Update placeholder immediately if they are active and typing
+          if (data.name) {
+             otherPartyName = data.name.trim();
+             updateDynamicPlaceholder();
+          }
+
           if (containerEl) {
               containerEl.innerHTML = '<div id="typing-indicator" style="font-size: 0.85rem; color: #8e8e8e; font-style: italic; margin: 5px 0;">' + escapeHtml(data.name) + ' is purrring 🐾</div>';
           } else {
-               let typingEl = document.getElementById('typing-indicator');
+              let typingEl = document.getElementById('typing-indicator');
               if (!typingEl) {
                   typingEl = document.createElement('div');
                   typingEl.id = 'typing-indicator';
@@ -177,6 +192,7 @@ form?.addEventListener('submit', async (event) => {
   localStorage.setItem(role + 'Name', name);
   input.value = '';
   input.focus();
+  updateDynamicPlaceholder(); // Ensure the placeholder stays set correctly after submission
   await fetch('/api/send', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -220,6 +236,4 @@ const clearChatAction = async () => {
 };
 document.querySelector('#clearBtn')?.addEventListener('click', clearChatAction);
 
-// Initialize connection logic
 connect();
- 
