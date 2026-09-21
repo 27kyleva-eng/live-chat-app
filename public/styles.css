@@ -861,3 +861,73 @@ button#close-menu-btn:hover {
   margin-top: 6px;
   display: block;
 }
+/* Force Attachment Button to Square */
+button.attachment-btn,
+.attachment-btn {
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  border-radius: 8px !important; /* Rounded square shape */
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #232d2d;
+  color: #f7a8c4;
+  border: 1px solid #3d4a52;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+button.attachment-btn:hover {
+  background-color: #3d4a52;
+  color: #fbcfe8;
+}
+
+/* Image Preview Container above composer */
+.image-preview-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: #1a2121;
+  border: 1px solid #3d4a52;
+  border-radius: 8px;
+  margin: 0 0 10px 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.image-preview-thumb {
+  width: 42px;
+  height: 42px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #3d4a52;
+}
+
+.remove-image-btn {
+  background: transparent !important;
+  border: none !important;
+  color: #f7a8c4 !important;
+  font-size: 1.1rem !important;
+  cursor: pointer;
+  margin-left: auto;
+  padding: 2px 6px;
+}
+
+.remove-image-btn:hover {
+  color: #ff6b81 !important;
+}
+
+/* Chat Feed Image Display */
+.message-image {
+  max-width: 100%;
+  max-height: 250px;
+  border-radius: 8px;
+  margin-top: 6px;
+  display: block;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}

@@ -36,7 +36,8 @@ function readBody(req) {
     let body = '';
     req.on('data', chunk => {
       body += chunk;
-      if (body.length > 100_000) {
+      // Raised payload size limit to 10MB to handle base64 image attachments
+      if (body.length > 10_000_000) {
         reject(new Error('Body too large'));
         req.destroy();
       }
@@ -110,13 +111,18 @@ const server = http.createServer(async (req, res) => {
       const body = await readBody(req);
       const { id, data } = getRoom(body.room);
       const text = String(body.text || '').trim().slice(0, 1200);
-      if (!text) return json(res, 400, { error: 'Message required' });
+      const image = body.image && typeof body.image === 'string' && body.image.startsWith('data:image/') ? body.image : null;
+      
+      // Require either text OR an attached image
+      if (!text && !image) return json(res, 400, { error: 'Text or image required' });
+
       const message = {
         id: crypto.randomUUID(),
         room: id,
         sender: body.sender === 'host' ? 'host' : 'guest',
         name: String(body.name || (body.sender === 'host' ? 'Host' : 'Guest')).slice(0, 40),
         text,
+        image,
         createdAt: new Date().toISOString(),
         seen: false
       };
@@ -127,38 +133,37 @@ const server = http.createServer(async (req, res) => {
     } catch (error) {
       return json(res, 400, { error: error.message });
     }
-  }if (req.method === 'POST' && url.pathname === '/api/seen') {
-    try {
-        const body = await readBody(req);
-        const { room, msgId, seenBy } = body;
-        const { data } = getRoom(room);
-        
-        // Find the specific message in the room's history and flag it as seen
-        const msg = data.messages.find(m => m.id === msgId);
-        if (msg) {
-            msg.seen = true;
-            msg.seenBy = seenBy || 'Someone';
-        }
-        // Broadcast to the other user that this message ID has been seen
-        broadcast(room, 'seen', { msgId, seenBy: seenBy || 'Someone' });
-        return json(res, 200, { success: true });
-    } catch (err) {
-        return json(res, 500, { error: 'Server Error' });
-    }
-}
-    if (req.method === 'POST' && url.pathname === '/api/typing') {
-        try {
-            const body = await readBody(req);
-            const { room, sender, name, isTyping } = body;
-            
-            // Broadcast the typing event to the other person in the room
-            broadcast(room, 'typing', { sender, name, isTyping });
-            return json(res, 200, { success: true });
-        } catch (err) {
-            return json(res, 500, { error: 'Server Error' });
-        }
-    }
+  }
 
+  if (req.method === 'POST' && url.pathname === '/api/seen') {
+    try {
+      const body = await readBody(req);
+      const { room, msgId, seenBy } = body;
+      const { data } = getRoom(room);
+      
+      const msg = data.messages.find(m => m.id === msgId);
+      if (msg) {
+        msg.seen = true;
+        msg.seenBy = seenBy || 'Someone';
+      }
+      broadcast(room, 'seen', { msgId, seenBy: seenBy || 'Someone' });
+      return json(res, 200, { success: true });
+    } catch (err) {
+      return json(res, 500, { error: 'Server Error' });
+    }
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/typing') {
+    try {
+      const body = await readBody(req);
+      const { room, sender, name, isTyping } = body;
+      
+      broadcast(room, 'typing', { sender, name, isTyping });
+      return json(res, 200, { success: true });
+    } catch (err) {
+      return json(res, 500, { error: 'Server Error' });
+    }
+  }
 
   if (req.method === 'POST' && url.pathname === '/api/clear') {
     const body = await readBody(req).catch(() => ({}));

@@ -266,10 +266,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const attachBtn = document.getElementById('attachment-btn') || document.getElementById('attach-btn');
 
   if (attachBtn && fileInput) {
-    attachBtn.addEventListener('click', () => fileInput.click());
+    attachBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      fileInput.click();
+    });
   }
 
-  if (dropZone && fileInput) {
+  if (fileInput) {
+    fileInput.addEventListener('change', (e) => {
+      handleImageFiles(e.target.files);
+    });
+  }
+
+  if (dropZone) {
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
       window.addEventListener(eventName, (e) => {
         e.preventDefault();
@@ -290,10 +299,6 @@ document.addEventListener('DOMContentLoaded', () => {
         handleImageFiles(e.dataTransfer.files);
       }
     });
-
-    fileInput.addEventListener('change', (e) => {
-      handleImageFiles(e.target.files);
-    });
   }
 });
 
@@ -307,30 +312,31 @@ function handleImageFiles(files) {
   }
 
   const reader = new FileReader();
-  reader.readAsDataURL(file);
   reader.onloadend = () => {
     pendingImageData = reader.result;
-    showImagePreview(pendingImageData);
+    window.showImagePreview(pendingImageData);
   };
+  reader.readAsDataURL(file);
 }
 
-function showImagePreview(src) {
-  clearImagePreview();
+// Attach preview & clear functions directly to window so inline click handlers reach them
+window.showImagePreview = function(src) {
+  window.clearImagePreview();
   const previewDiv = document.createElement('div');
   previewDiv.id = 'image-preview';
   previewDiv.className = 'image-preview-container';
   previewDiv.innerHTML = `
     <img src="${src}" class="image-preview-thumb" alt="Preview" />
-    <span style="font-size:0.85rem; color:#aaa;">Image attached</span>
-    <button type="button" class="remove-image-btn" onclick="clearImagePreview()">✕</button>
+    <span style="font-size:0.85rem; color:#cbb4d4;">Image ready to send 🐾</span>
+    <button type="button" class="remove-image-btn" onclick="window.clearImagePreview()">✕</button>
   `;
   if (form) form.parentNode.insertBefore(previewDiv, form);
-}
+};
 
-function clearImagePreview() {
+window.clearImagePreview = function() {
   pendingImageData = null;
   const existing = document.getElementById('image-preview');
   if (existing) existing.remove();
   const fileInput = document.getElementById('file-input');
   if (fileInput) fileInput.value = '';
-}
+};
