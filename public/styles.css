@@ -951,7 +951,7 @@ button.attachment-btn:hover {
   line-height: 1 !important;
 }
 
- /* 1. KEEPS THE SQUARE FIX SAFE: Perfectly symmetrical close button configuration */
+/* 1. KEEP SQUARE BUTTON SAFE: Perfectly shaped close button profile */
 #image-preview-container button {
   width: 24px !important;
   min-width: 24px !important;
@@ -968,12 +968,16 @@ button.attachment-btn:hover {
   line-height: 1 !important;
 }
 
-/* 2. RE-ADDS THE HOVER INDICATOR: Transforms the chat box interface live on file hover */
+/* 2. REPAIR DRAG INDICATOR: Safely highlight layout frames without blocking mouse drops */
 .chat-card.drag-active {
-  border: 2px dashed #4a90e2 !important; /* Prominent dashed blueprint drop boundaries */
-  background-color: rgba(74, 144, 226, 0.08) !important; /* Soft blue tint glow layer */
+  border: 2px dashed #4a90e2 !important; /* Blueprint style dashed bounds */
+  background-color: rgba(74, 144, 226, 0.08) !important; /* Soft blue tint overlay */
   box-shadow: 0 0 20px rgba(74, 144, 226, 0.3) !important;
-  transform: scale(1.01); /* Subtle expand animation layout pop */
+  transform: scale(1.01); /* Subtle expand card animation */
   transition: all 0.2s ease-in-out !important;
-  pointer-events: none; /* Crucial: Prevents internal text nodes from breaking drag events */
+}
+
+/* Fixes internal elements from flickering the drag highlights */
+.chat-card.drag-active * {
+  pointer-events: none !important; /* Keeps pointer event tracking safe ONLY on children, not the card itself! */
 }
