@@ -931,3 +931,23 @@ button.attachment-btn:hover {
   display: block;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
+
+/* 1. Fix the thumbnail clear attachment button into a sharp red square layout */
+#image-preview-container button {
+  width: 20px !important;
+  height: 20px !important;
+  border-radius: 4px !important; /* Changes the circle shape configuration into a rounded square layout */
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+}
+
+/* 2. Visual Hover Indicator Feedback: Highlights the chat card frame when dragging a file over it */
+.chat-card.drag-active {
+  border: 2px dashed #4a90e2 !important; /* Gives the container board a dashed blueprint boundary lines framework */
+  background-color: rgba(74, 144, 226, 0.08) !important; /* Tints the interface backdrop soft blue */
+  box-shadow: 0 0 15px rgba(74, 144, 226, 0.25) !important;
+  transition: all 0.2s ease-in-out;
+}
