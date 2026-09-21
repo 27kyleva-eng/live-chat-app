@@ -104,7 +104,13 @@ function setPresence(online) {
   statusEl.textContent = other > 0 ? 'Someone is online now' : 'Waiting for the other person';
 }
 
-function connect() {
+// Global placeholder clear preview fallback helper
+window.clearImagePreview = function() {
+  pendingImageData = null;
+  const previewContainer = document.getElementById('image-preview-container');
+  if (previewContainer) previewContainer.innerHTML = '';
+  };
+  function connect() {
   const source = new EventSource('/api/events?room=' + encodeURIComponent(room) + '&role=' + encodeURIComponent(role));
 
   source.addEventListener('hello', (event) => {
@@ -248,94 +254,68 @@ const clearChatAction = async () => {
 };
 document.querySelector('#clearBtn')?.addEventListener('click', clearChatAction);
 
-connect();
+// --- DRAG AND DROP HANDLERS ---
+const chatCard = document.querySelector('.chat-card');
 
-// Navigation Drawer
-const openMenuBtn = document.getElementById('open-menu-btn');
-const closeMenuBtn = document.getElementById('close-menu-btn');
-const sidebarMenu = document.getElementById('sidebar-menu');
-
-if (openMenuBtn && sidebarMenu) openMenuBtn.addEventListener('click', () => sidebarMenu.classList.add('open'));
-if (closeMenuBtn && sidebarMenu) closeMenuBtn.addEventListener('click', () => sidebarMenu.classList.remove('open'));
-
-// Attachment & Drop Engine
-function setupAttachments() {
-  const dropZone = document.getElementById('drop-zone') || document.body;
-  const fileInput = document.getElementById('file-input');
-  const attachBtn = document.getElementById('attachment-btn') || document.getElementById('attach-btn');
-
-  if (attachBtn && fileInput) {
-    attachBtn.onclick = (e) => {
-      e.preventDefault();
-      fileInput.click();
-    };
-  }
-
-  if (fileInput) {
-    fileInput.onchange = (e) => {
-      handleImageFiles(e.target.files);
-    };
-  }
-
+if (chatCard) {
   ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    window.addEventListener(eventName, (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    }, false);
+    chatCard.addEventListener(eventName, (e) => e.preventDefault(), false);
   });
 
-  window.addEventListener('drop', (e) => {
-    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleImageFiles(e.dataTransfer.files);
+  ['dragenter', 'dragover'].forEach(eventName => {
+    chatCard.addEventListener(eventName, () => chatCard.classList.add('drag-active'), false);
+  });
+  ['dragleave', 'drop'].forEach(eventName => {
+    chatCard.addEventListener(eventName, () => chatCard.classList.remove('drag-active'), false);
+  });
+
+  chatCard.addEventListener('drop', (e) => {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+
+    if (files && files.length > 0) {
+      const file = files[0];
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onloadend = () => {
+          pendingImageData = reader.result;
+          
+          let previewContainer = document.getElementById('image-preview-container');
+          if (!previewContainer) {
+            previewContainer = document.createElement('div');
+            previewContainer.id = 'image-preview-container';
+            previewContainer.style.padding = '5px 15px';
+            form.parentNode.insertBefore(previewContainer, form);
+          }
+          previewContainer.innerHTML = `
+            <div style="position: relative; display: inline-block;">
+              <img src="${pendingImageData}" style="max-height: 60px; border-radius: 4px; border: 1px solid #ccc;" />
+              <button type="button" onclick="window.clearImagePreview()" style="position: absolute; top: -5px; right: -5px; background: red; color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;">&times;</button>
+            </div>
+          `;
+        };
+      } else {
+        showToast('Only image files can be dropped here!');
+      }
     }
   });
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', setupAttachments);
-} else {
-  setupAttachments();
+// Sidebar Drawer Menu Navigation Toggle Controller
+const openMenuBtn = document.getElementById('open-menu-btn');
+const closeMenuBtn = document.getElementById('close-menu-btn');
+const sidebarMenu = document.getElementById('sidebar-menu');
+
+if (openMenuBtn && sidebarMenu) {
+  openMenuBtn.addEventListener('click', () => {
+    sidebarMenu.classList.add('open');
+  });
+}
+if (closeMenuBtn && sidebarMenu) {
+  closeMenuBtn.addEventListener('click', () => {
+    sidebarMenu.classList.remove('open');
+  });
 }
 
-function handleImageFiles(files) {
-  if (!files || files.length === 0) return;
-  const file = files[0];
-
-  if (!file.type.startsWith('image/')) {
-    alert('Please upload an image file!');
-    return;
-  }
-
-  const reader = new FileReader();
-  reader.onloadend = () => {
-    pendingImageData = reader.result;
-    window.showImagePreview(pendingImageData);
-  };
-  reader.readAsDataURL(file);
-}
-
-window.showImagePreview = function(src) {
-  window.clearImagePreview();
-  const previewDiv = document.createElement('div');
-  previewDiv.id = 'image-preview';
-  previewDiv.className = 'image-preview-container';
-  previewDiv.style.margin = '10px 0';
-  previewDiv.style.display = 'flex';
-  previewDiv.style.alignItems = 'center';
-  previewDiv.style.gap = '10px';
-  
-  previewDiv.innerHTML = `
-    <img src="${src}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px;" alt="Preview" />
-    <span style="font-size: 0.85rem; color: #cbb4d4;">Image ready to send 🐾</span>
-    <button type="button" style="background:none; border:none; color:#ff4d4d; cursor:pointer; font-weight:bold;" onclick="window.clearImagePreview()">✕</button>
-  `;
-  if (form) form.parentNode.insertBefore(previewDiv, form);
-};
-
-window.clearImagePreview = function() {
-  pendingImageData = null;
-  const existing = document.getElementById('image-preview');
-  if (existing) existing.remove();
-  const fileInput = document.getElementById('file-input');
-  if (fileInput) fileInput.value = '';
-};
+connect();
