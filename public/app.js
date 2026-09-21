@@ -73,7 +73,7 @@ function renderMessage(msg) {
     }
 
     if (msg.image) {
-        htmlContent += '<div><img src="' + msg.image + '" class="message-image" alt="Attached image" /></div>';
+        htmlContent += '<div><img src="' + msg.image + '" class="message-image" style="max-width: 100%; border-radius: 8px; margin-top: 5px;" alt="Attached image" /></div>';
     }
     
     if (isMe) {
@@ -187,7 +187,6 @@ form?.addEventListener('submit', async (event) => {
   event.preventDefault();
   const text = input.value.trim();
   
-  // Allow sending if there's either text OR an image
   if (!text && !pendingImageData) return;
 
   const name = (nameInput ? nameInput.value : (role === 'host' ? 'Host' : 'Guest')).trim();
@@ -202,7 +201,7 @@ form?.addEventListener('submit', async (event) => {
   };
 
   input.value = '';
-  clearImagePreview();
+  window.clearImagePreview();
   input.focus();
   updateDynamicPlaceholder();
 
@@ -259,48 +258,44 @@ const sidebarMenu = document.getElementById('sidebar-menu');
 if (openMenuBtn && sidebarMenu) openMenuBtn.addEventListener('click', () => sidebarMenu.classList.add('open'));
 if (closeMenuBtn && sidebarMenu) closeMenuBtn.addEventListener('click', () => sidebarMenu.classList.remove('open'));
 
-// Drag-and-Drop & Attachment Engine
-document.addEventListener('DOMContentLoaded', () => {
-  const dropZone = document.getElementById('drop-zone');
+// Attachment & Drop Engine
+function setupAttachments() {
+  const dropZone = document.getElementById('drop-zone') || document.body;
   const fileInput = document.getElementById('file-input');
   const attachBtn = document.getElementById('attachment-btn') || document.getElementById('attach-btn');
 
   if (attachBtn && fileInput) {
-    attachBtn.addEventListener('click', (e) => {
+    attachBtn.onclick = (e) => {
       e.preventDefault();
       fileInput.click();
-    });
+    };
   }
 
   if (fileInput) {
-    fileInput.addEventListener('change', (e) => {
+    fileInput.onchange = (e) => {
       handleImageFiles(e.target.files);
-    });
+    };
   }
 
-  if (dropZone) {
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-      window.addEventListener(eventName, (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-      }, false);
-    });
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    window.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    }, false);
+  });
 
-    ['dragenter', 'dragover'].forEach(eventName => {
-      window.addEventListener(eventName, () => dropZone.classList.add('drag-over'), false);
-    });
+  window.addEventListener('drop', (e) => {
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleImageFiles(e.dataTransfer.files);
+    }
+  });
+}
 
-    ['dragleave', 'drop'].forEach(eventName => {
-      window.addEventListener(eventName, () => dropZone.classList.remove('drag-over'), false);
-    });
-
-    window.addEventListener('drop', (e) => {
-      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-        handleImageFiles(e.dataTransfer.files);
-      }
-    });
-  }
-});
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', setupAttachments);
+} else {
+  setupAttachments();
+}
 
 function handleImageFiles(files) {
   if (!files || files.length === 0) return;
@@ -319,16 +314,20 @@ function handleImageFiles(files) {
   reader.readAsDataURL(file);
 }
 
-// Attach preview & clear functions directly to window so inline click handlers reach them
 window.showImagePreview = function(src) {
   window.clearImagePreview();
   const previewDiv = document.createElement('div');
   previewDiv.id = 'image-preview';
   previewDiv.className = 'image-preview-container';
+  previewDiv.style.margin = '10px 0';
+  previewDiv.style.display = 'flex';
+  previewDiv.style.alignItems = 'center';
+  previewDiv.style.gap = '10px';
+  
   previewDiv.innerHTML = `
-    <img src="${src}" class="image-preview-thumb" alt="Preview" />
-    <span style="font-size:0.85rem; color:#cbb4d4;">Image ready to send 🐾</span>
-    <button type="button" class="remove-image-btn" onclick="window.clearImagePreview()">✕</button>
+    <img src="${src}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px;" alt="Preview" />
+    <span style="font-size: 0.85rem; color: #cbb4d4;">Image ready to send 🐾</span>
+    <button type="button" style="background:none; border:none; color:#ff4d4d; cursor:pointer; font-weight:bold;" onclick="window.clearImagePreview()">✕</button>
   `;
   if (form) form.parentNode.insertBefore(previewDiv, form);
 };
