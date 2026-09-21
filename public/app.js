@@ -306,3 +306,42 @@ function handleImageFiles(files) {
     // Ready for message payload integration
   };
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  const composer = document.getElementById('composer');
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+  const attachmentBtn = document.getElementById('attachment-btn');
+
+  if (!composer || !dropZone || !fileInput) return;
+
+  if (attachmentBtn) {
+    attachmentBtn.addEventListener('click', () => fileInput.click());
+  }
+
+  ['dragover', 'drop'].forEach(evt => window.addEventListener(evt, e => e.preventDefault()));
+
+  composer.addEventListener('dragenter', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('drag-over');
+  });
+
+  dropZone.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+  });
+
+  composer.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleImageFiles(e.dataTransfer.files);
+    }
+  });
+
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      handleImageFiles(e.target.files);
+    }
+  });
+});

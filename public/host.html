@@ -79,8 +79,15 @@
         <div id="typing-container" style="min-height: 25px; padding: 0 15px; background: transparent;"></div>
 
         <form class="composer" id="composer">
+          <input type="file" id="file-input" accept="image/*" hidden />
+          <button type="button" id="attachment-btn" class="attachment-btn" aria-label="Attach File">+</button>
           <input id="messageInput" autocomplete="off" maxlength="1200" placeholder="Reply as the operator…" aria-label="Message">
           <button class="primary" type="submit">Send</button>
+
+          <div id="drop-zone" class="drop-zone-overlay">
+            <span class="drop-zone-icon">🐾</span>
+            <span class="drop-zone-text">Drop image to attach</span>
+          </div>
         </form>
       </section>
 

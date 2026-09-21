@@ -39,15 +39,16 @@
       <!-- Dedicated typing container pinned permanently right below the scroll area -->
       <div id="typing-container" style="min-height: 25px; padding: 0 15px; background: transparent;"></div>
 
-      <!-- Drag & Drop Image Drop Zone -->
-      <div id="drop-zone" class="drop-zone">
-        <span class="drop-zone-icon">🐾</span>
-        <span class="drop-zone-text">Drag & drop an image here or <label for="file-input" class="file-label">browse</label></span>
-        <input type="file" id="file-input" accept="image/*" hidden />
-      </div>
       <form class="composer" id="composer">
+        <input type="file" id="file-input" accept="image/*" hidden />
+        <button type="button" id="attachment-btn" class="attachment-btn" aria-label="Attach File">+</button>
         <input id="messageInput" autocomplete="off" maxlength="1200" placeholder="Type a message..." aria-label="Message">
         <button class="primary" type="submit">Send</button>
+
+        <div id="drop-zone" class="drop-zone-overlay">
+          <span class="drop-zone-icon">🐾</span>
+          <span class="drop-zone-text">Drop image to attach</span>
+        </div>
       </form>
     </section>
 
