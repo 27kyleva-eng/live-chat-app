@@ -55,7 +55,7 @@ function showToast(text) {
 }
 
 function escapeHtml(text) {
-  return text.replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+  return text.replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 }
 
 function formatTime(iso) {
@@ -112,7 +112,7 @@ function connect() {
     if (messagesEl) {
       messagesEl.innerHTML = '';
       if (!data.messages.length) {
-        messagesEl.innerHTML = '<div class="empty" id="empty"><div class="empty-icon">💬</div><strong>No messages yet.</strong><br>Send the first one and pretend you run a tiny help desk.</div>';
+        messagesEl.innerHTML = '<div class="empty" id="empty"><div class="empty-icon">🐾</div><strong>Meow-nagement Dashboard</strong><br>No active tickets in the queue. Everything is running purr-fectly!</div>';
       }
       
       // Determine other party name from existing history if available
@@ -147,7 +147,6 @@ function connect() {
       const containerEl = document.getElementById('typing-container');
       
       if (data.isTyping) {
-          // Update placeholder immediately if they are active and typing
           if (data.name) {
              otherPartyName = data.name.trim();
              updateDynamicPlaceholder();
@@ -192,7 +191,7 @@ form?.addEventListener('submit', async (event) => {
   localStorage.setItem(role + 'Name', name);
   input.value = '';
   input.focus();
-  updateDynamicPlaceholder(); // Ensure the placeholder stays set correctly after submission
+  updateDynamicPlaceholder();
   await fetch('/api/send', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -255,42 +254,45 @@ if (closeMenuBtn && sidebarMenu) {
   });
 }
 
-// Image Drag & Drop Logic
-const dropZone = document.getElementById('drop-zone');
-const fileInput = document.getElementById('file-input');
+// Single Consolidated Drag & Drop / File Attachment Logic
+document.addEventListener('DOMContentLoaded', () => {
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+  const attachBtn = document.getElementById('attach-btn') || document.getElementById('attachment-btn');
 
-if (dropZone && fileInput) {
-  // Prevent browser default behavior (opening file in tab)
-  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    dropZone.addEventListener(eventName, (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    }, false);
-  });
+  if (attachBtn && fileInput) {
+    attachBtn.addEventListener('click', () => fileInput.click());
+  }
 
-  // Visual highlights on drag over
-  ['dragenter', 'dragover'].forEach(eventName => {
-    dropZone.addEventListener(eventName, () => dropZone.classList.add('active'), false);
-  });
+  if (dropZone && fileInput) {
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }, false);
+    });
 
-  ['dragleave', 'drop'].forEach(eventName => {
-    dropZone.addEventListener(eventName, () => dropZone.classList.remove('active'), false);
-  });
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, () => dropZone.classList.add('active', 'drag-over'), false);
+    });
 
-  // Handle dropped files
-  dropZone.addEventListener('drop', (e) => {
-    const files = e.dataTransfer.files;
-    handleImageFiles(files);
-  });
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, () => dropZone.classList.remove('active', 'drag-over'), false);
+    });
 
-  // Handle manual file selection via browse click
-  fileInput.addEventListener('change', (e) => {
-    handleImageFiles(e.target.files);
-  });
-}
+    dropZone.addEventListener('drop', (e) => {
+      const files = e.dataTransfer.files;
+      handleImageFiles(files);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      handleImageFiles(e.target.files);
+    });
+  }
+});
 
 function handleImageFiles(files) {
-  if (files.length === 0) return;
+  if (!files || files.length === 0) return;
   const file = files[0];
 
   if (!file.type.startsWith('image/')) {
@@ -302,46 +304,6 @@ function handleImageFiles(files) {
   reader.readAsDataURL(file);
   reader.onloadend = () => {
     const base64Image = reader.result;
-    console.log('Image ready to send:', base64Image);
-    // Ready for message payload integration
+    console.log('Image encoded successfully:', base64Image);
   };
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-  const composer = document.getElementById('composer');
-  const dropZone = document.getElementById('drop-zone');
-  const fileInput = document.getElementById('file-input');
-  const attachmentBtn = document.getElementById('attachment-btn');
-
-  if (!composer || !dropZone || !fileInput) return;
-
-  if (attachmentBtn) {
-    attachmentBtn.addEventListener('click', () => fileInput.click());
-  }
-
-  ['dragover', 'drop'].forEach(evt => window.addEventListener(evt, e => e.preventDefault()));
-
-  composer.addEventListener('dragenter', (e) => {
-    e.preventDefault();
-    dropZone.classList.add('drag-over');
-  });
-
-  dropZone.addEventListener('dragleave', (e) => {
-    e.preventDefault();
-    dropZone.classList.remove('drag-over');
-  });
-
-  composer.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropZone.classList.remove('drag-over');
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleImageFiles(e.dataTransfer.files);
-    }
-  });
-
-  fileInput.addEventListener('change', (e) => {
-    if (e.target.files && e.target.files.length > 0) {
-      handleImageFiles(e.target.files);
-    }
-  });
-});
