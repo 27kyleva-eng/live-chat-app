@@ -237,3 +237,20 @@ const clearChatAction = async () => {
 document.querySelector('#clearBtn')?.addEventListener('click', clearChatAction);
 
 connect();
+
+// Sidebar Drawer Menu Navigation Toggle Controller
+const openMenuBtn = document.getElementById('open-menu-btn');
+const closeMenuBtn = document.getElementById('close-menu-btn');
+const sidebarMenu = document.getElementById('sidebar-menu');
+
+if (openMenuBtn && sidebarMenu) {
+  openMenuBtn.addEventListener('click', () => {
+    sidebarMenu.classList.add('open');
+  });
+}
+
+if (closeMenuBtn && sidebarMenu) {
+  closeMenuBtn.addEventListener('click', () => {
+    sidebarMenu.classList.remove('open');
+  });
+}
