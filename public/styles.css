@@ -705,3 +705,40 @@ button#close-menu-btn:hover {
   margin: 0 auto !important;
   box-sizing: border-box !important;
 }
+
+/* Drag & Drop Image Zone - Mystic Twilight Theme */
+.drop-zone {
+  border: 2px dashed #485460;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  background-color: #242e30; /* Dark Charcoal Base */
+  color: #f7cad0;            /* Soft Pink Text */
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  margin: 10px 15px;
+}
+
+.drop-zone.active {
+  border-color: #f7cad0;      /* Bright Pink Border on Drag */
+  background-color: #8b728e; /* Muted Purple Accent */
+  color: #ffffff;
+  transform: scale(1.01);
+}
+
+.drop-zone-icon {
+  font-size: 1.5rem;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.file-label {
+  color: #cbb4d4;            /* Soft Lavender Link */
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.file-label:hover {
+  color: #f7cad0;            /* Pink Hover State */
+}
