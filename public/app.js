@@ -1,3 +1,4 @@
+cat << 'EOF' > public/app.js
 const qs = new URLSearchParams(location.search);
 const role = document.body.dataset.role || 'guest';
 let room = qs.get('room') || localStorage.getItem('funChatRoom') || 'lobby';
@@ -254,6 +255,49 @@ const clearChatAction = async () => {
 };
 document.querySelector('#clearBtn')?.addEventListener('click', clearChatAction);
 
+// --- ATTACHMENT BUTTON CLICK HANDLER & FILE PROCESSOR ---
+function processSelectedFile(file) {
+  if (!file || !file.type.startsWith('image/')) {
+    showToast('Only image files can be attached!');
+    return;
+  }
+  const reader = new FileReader();
+  reader.readAsDataURL(file);
+  reader.onloadend = () => {
+    pendingImageData = reader.result;
+    let previewContainer = document.getElementById('image-preview-container');
+    if (!previewContainer) {
+      previewContainer = document.createElement('div');
+      previewContainer.id = 'image-preview-container';
+      previewContainer.style.padding = '5px 15px';
+      if (form) form.parentNode.insertBefore(previewContainer, form);
+    }
+    previewContainer.innerHTML = `
+      <div style="position: relative; display: inline-block;">
+        <img src="${pendingImageData}" style="max-height: 60px; border-radius: 4px; border: 1px solid #ccc;" />
+        <button type="button" onclick="window.clearImagePreview()" style="position: absolute; top: -5px; right: -5px; background: red; color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;">&times;</button>
+      </div>
+    `;
+  };
+}
+
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('#attachment-btn') || e.target.closest('.attachment-btn') || e.target.closest('#attach-btn');
+  if (btn) {
+    e.preventDefault();
+    const fileInput = document.getElementById('file-input');
+    if (fileInput) fileInput.click();
+  }
+});
+
+document.addEventListener('change', (e) => {
+  if (e.target && e.target.id === 'file-input') {
+    if (e.target.files && e.target.files.length > 0) {
+      processSelectedFile(e.target.files[0]);
+    }
+  }
+});
+
 // --- DRAG AND DROP HANDLERS ---
 const chatCard = document.querySelector('.chat-card');
 
@@ -274,30 +318,7 @@ if (chatCard) {
     const files = dt.files;
 
     if (files && files.length > 0) {
-      const file = files[0];
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onloadend = () => {
-          pendingImageData = reader.result;
-          
-          let previewContainer = document.getElementById('image-preview-container');
-          if (!previewContainer) {
-            previewContainer = document.createElement('div');
-            previewContainer.id = 'image-preview-container';
-            previewContainer.style.padding = '5px 15px';
-            form.parentNode.insertBefore(previewContainer, form);
-          }
-          previewContainer.innerHTML = `
-            <div style="position: relative; display: inline-block;">
-              <img src="${pendingImageData}" style="max-height: 60px; border-radius: 4px; border: 1px solid #ccc;" />
-              <button type="button" onclick="window.clearImagePreview()" style="position: absolute; top: -5px; right: -5px; background: red; color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;">&times;</button>
-            </div>
-          `;
-        };
-      } else {
-        showToast('Only image files can be dropped here!');
-      }
+      processSelectedFile(files[0]);
     }
   });
 }
