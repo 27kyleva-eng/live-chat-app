@@ -981,3 +981,26 @@ button.attachment-btn:hover {
 .chat-card.drag-active * {
   pointer-events: none !important; /* Keeps pointer event tracking safe ONLY on children, not the card itself! */
 }
+
+/* Drag and drop hover overlay */
+.chat-card.drag-over {
+  position: relative;
+  outline: 3px dashed #3b82f6;
+  outline-offset: -3px;
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+.chat-card.drag-over::after {
+  content: "📥 Drop files here to upload";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1d4ed8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1.2rem;
+  z-index: 10;
+  pointer-events: none; /* Crucial to prevent flickering */
+}
