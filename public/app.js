@@ -17,8 +17,8 @@ const emptyEl = document.querySelector('#empty');
 const toastEl = document.querySelector('#toast');
 const nameInput = document.querySelector('#nameInput');
 
- let pendingImageData = null;
- let otherPartyName = role === 'host' ? 'Guest' : 'Host';
+let pendingImageData = null;
+let otherPartyName = role === 'host' ? 'Guest' : 'Host';
 
 if (roomEl) roomEl.textContent = room;
 if (nameInput) nameInput.value = localStorage.getItem(role + 'Name') || (role === 'host' ? 'Host' : 'Guest');
@@ -80,7 +80,7 @@ function renderMessage(msg) {
     if (!isMe) {
         otherPartyName = (msg.name || msg.sender).trim() || (role === 'host' ? 'Guest' : 'Host');
         updateDynamicPlaceholder();
-         const myCurrentName = (nameInput ? nameInput.value : (role === 'host' ? 'Host' : 'Guest')).trim();
+        const myCurrentName = (nameInput ? nameInput.value : (role === 'host' ? 'Host' : 'Guest')).trim();
         fetch('/api/seen', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -95,7 +95,7 @@ function setPresence(online) {
   statusEl.textContent = other > 0 ? 'Someone is online now' : 'Waiting for the other person';
 }
 
- window.clearImagePreview = function() {
+window.clearImagePreview = function() {
   pendingImageData = null;
   const previewContainer = document.getElementById('image-preview-container');
   if (previewContainer) previewContainer.innerHTML = '';
@@ -123,7 +123,7 @@ function connect() {
 
   source.addEventListener('message', (event) => renderMessage(JSON.parse(event.data)));
   source.addEventListener('presence', (event) => setPresence(JSON.parse(event.data).online));
-   source.addEventListener('clear', () => {
+  source.addEventListener('clear', () => {
     messagesEl.innerHTML = '<div class="empty" id="empty"><div class="empty-icon">🐾</div><strong>Chat cleared.</strong><br>Fresh space, purr-fect place.</div>';
   });
   
@@ -136,14 +136,14 @@ function connect() {
   source.addEventListener('typing', (event) => {
       const data = JSON.parse(event.data);
       if (data.sender === role) return;
-       const containerEl = document.getElementById('typing-container');
+      const containerEl = document.getElementById('typing-container');
       
       if (data.isTyping) {
           if (data.name) {
              otherPartyName = data.name.trim();
              updateDynamicPlaceholder();
           }
-           if (containerEl) {
+          if (containerEl) {
               containerEl.innerHTML = '<div id="typing-indicator" style="font-size: 0.85rem; color: #8e8e8e; font-style: italic; margin: 5px 0;">' + escapeHtml(data.name) + ' is purrring 🐾</div>';
           } else {
               let typingEl = document.getElementById('typing-indicator');
@@ -171,10 +171,10 @@ function connect() {
   source.onerror = () => { if (statusEl) statusEl.textContent = 'Reconnecting…'; };
 }
 
- form?.addEventListener('submit', async (event) => {
+form?.addEventListener('submit', async (event) => {
   event.preventDefault();
   const text = input.value.trim();
-   if (!text && !pendingImageData) return;
+  if (!text && !pendingImageData) return;
 
   const name = (nameInput ? nameInput.value : (role === 'host' ? 'Host' : 'Guest')).trim();
   localStorage.setItem(role + 'Name', name);
@@ -275,6 +275,6 @@ window.addEventListener('drop', (e) => {
     }
   }
 });
- 
+
 connect();
 EOF
